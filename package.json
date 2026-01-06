@@ -1,0 +1,35 @@
+{
+  "name": "solar-crm-api",
+  "version": "1.0.0",
+  "description": "API completa para CRM de Energia Solar com Kanban, IA e WhatsApp",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "db:sync": "node scripts/syncDatabase.js"
+  },
+  "keywords": [
+    "crm",
+    "solar",
+    "kanban",
+    "whatsapp",
+    "openai"
+  ],
+  "author": "DGE Energia",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
+    "openai": "^4.24.0",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.35.2",
+    "socket.io": "^4.8.3"
+  }
+}
