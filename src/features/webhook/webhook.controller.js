@@ -42,28 +42,31 @@ class WebhookController {
      */
     extractMessageData(payload) {
         // Z-API can send different formats
+
+        // 1. Text message found in payload.text
         if (payload.text && payload.phone) {
             return {
                 phone: payload.phone,
                 message: payload.text.message || payload.text,
-                isFromMe: payload.isFromMe || false,
+                isFromMe: payload.fromMe || payload.fromApi || payload.isFromMe || false,
             };
         }
 
+        // 2. Message object wrapper
         if (payload.message && payload.message.text) {
             return {
                 phone: payload.phone || payload.from,
                 message: payload.message.text,
-                isFromMe: payload.message.isFromMe || false,
+                isFromMe: payload.fromMe || payload.fromApi || payload.message.isFromMe || payload.message.fromMe || false,
             };
         }
 
-        // Handle other common formats
+        // 3. Body/From format (common in some webhooks)
         if (payload.body && payload.from) {
             return {
                 phone: payload.from.replace('@c.us', ''),
                 message: payload.body,
-                isFromMe: false,
+                isFromMe: payload.fromMe || payload.fromApi || false,
             };
         }
 
