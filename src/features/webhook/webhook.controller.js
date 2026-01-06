@@ -42,22 +42,28 @@ class WebhookController {
      */
     extractMessageData(payload) {
         // Z-API can send different formats
+        console.log('[Webhook] Extracting data from payload:', JSON.stringify(payload, null, 2));
+
+        const isFromMe = payload.fromMe === true || payload.fromApi === true || payload.isFromMe === true || (payload.type === 'ReceivedCallback' && payload.fromApi === true);
 
         // 1. Text message found in payload.text
         if (payload.text && payload.phone) {
             return {
                 phone: payload.phone,
                 message: payload.text.message || payload.text,
-                isFromMe: payload.fromMe || payload.fromApi || payload.isFromMe || false,
+                isFromMe: isFromMe,
             };
         }
 
         // 2. Message object wrapper
         if (payload.message && payload.message.text) {
+
+            const messageIsFromMe = isFromMe || payload.message.isFromMe || payload.message.fromMe || false;
+
             return {
                 phone: payload.phone || payload.from,
                 message: payload.message.text,
-                isFromMe: payload.fromMe || payload.fromApi || payload.message.isFromMe || payload.message.fromMe || false,
+                isFromMe: messageIsFromMe,
             };
         }
 
@@ -66,10 +72,11 @@ class WebhookController {
             return {
                 phone: payload.from.replace('@c.us', ''),
                 message: payload.body,
-                isFromMe: payload.fromMe || payload.fromApi || false,
+                isFromMe: isFromMe,
             };
         }
 
+        console.log('[Webhook] Could not extract message data from payload');
         return null;
     }
 
