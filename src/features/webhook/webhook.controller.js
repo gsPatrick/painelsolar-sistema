@@ -79,7 +79,12 @@ class WebhookController {
         // --- TEST MODE WHITELIST ---
         // Only allow specific number to interact with the bot
         const cleanPhone = phone.replace(/\D/g, '');
-        if (!cleanPhone.includes('1982862912')) {
+        // Whitelist: 557182862912 (Log), 1982862912 (User Request), 5571982862912 (Potential 9th digit)
+        const allowedNumbers = ['557182862912', '1982862912', '5571982862912'];
+
+        const isAllowed = allowedNumbers.some(num => cleanPhone.includes(num) || num.includes(cleanPhone));
+
+        if (!isAllowed) {
             console.log(`[Webhook] IGNORING message from ${phone} (Not in whitelist)`);
             return;
         }
