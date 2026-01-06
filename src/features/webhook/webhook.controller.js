@@ -76,6 +76,15 @@ class WebhookController {
     async processIncomingMessage(phone, messageText) {
         console.log(`[Webhook] Processing message from ${phone}: ${messageText}`);
 
+        // --- TEST MODE WHITELIST ---
+        // Only allow specific number to interact with the bot
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (!cleanPhone.includes('1982862912')) {
+            console.log(`[Webhook] IGNORING message from ${phone} (Not in whitelist)`);
+            return;
+        }
+        // ---------------------------
+
         // Find or create lead
         let lead = await leadService.findByPhone(phone);
 
