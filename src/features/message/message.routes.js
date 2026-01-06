@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const messageController = require('./message.controller');
-const authMiddleware = require('../../middlewares/auth'); // Assuming auth middleware exists
+const authMiddleware = require('../auth/auth.middleware');
 
 // Protect routes
 router.use(authMiddleware);
