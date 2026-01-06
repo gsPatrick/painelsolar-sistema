@@ -10,8 +10,10 @@ class WhatsAppService {
         this.baseUrl = env.ZAPI_BASE_URL;
         this.instanceId = env.ZAPI_INSTANCE_ID;
         this.token = env.ZAPI_TOKEN;
+        this.clientToken = env.ZAPI_CLIENT_TOKEN;
         this.headers = {
             'Content-Type': 'application/json',
+            'Client-Token': this.clientToken
         };
     }
 

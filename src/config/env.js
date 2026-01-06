@@ -24,6 +24,7 @@ module.exports = {
   // Z-API (WhatsApp)
   ZAPI_INSTANCE_ID: process.env.ZAPI_INSTANCE_ID || '',
   ZAPI_TOKEN: process.env.ZAPI_TOKEN || '',
+  ZAPI_CLIENT_TOKEN: process.env.ZAPI_CLIENT_TOKEN || '',
   ZAPI_BASE_URL: process.env.ZAPI_BASE_URL || 'https://api.z-api.io',
 
   // Admin
