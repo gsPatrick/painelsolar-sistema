@@ -20,12 +20,19 @@ class WebhookController {
                 return res.status(200).json({ message: 'Event ignored' });
             }
 
-            const { phone, message, isFromMe } = messageData;
+            const { phone, message, isFromMe, isFromApi } = messageData;
 
             // HUMAN HANDOVER: If message is from the business phone/system, pause AI for this lead
-            if (isFromMe) {
+            // CRITICAL: Only pause if it was NOT sent via API (meaning it was typed manually on the phone by a human)
+            if (isFromMe && !isFromApi) {
                 await this.handleHumanIntervention(phone);
-                return res.status(200).json({ message: 'Human intervention detected, AI paused' });
+                return res.status(200).json({ message: 'Human intervention detected (Manual Message), AI paused' });
+            }
+
+            // If it's from me via API (Bot), ignore it
+            if (isFromMe && isFromApi) {
+                console.log('[Webhook] Message sent via API (Bot). Ignoring.');
+                return res.status(200).json({ message: 'Bot message ignored' });
             }
 
             // Extract sender name
@@ -48,6 +55,7 @@ class WebhookController {
         // Z-API can send different formats
         console.log('[Webhook] Extracting data from payload:', JSON.stringify(payload, null, 2));
 
+        const isFromApi = payload.fromApi === true;
         const isFromMe = payload.fromMe === true || payload.fromApi === true || payload.isFromMe === true || (payload.type === 'ReceivedCallback' && payload.fromApi === true);
 
         // 1. Text message found in payload.text
@@ -56,6 +64,7 @@ class WebhookController {
                 phone: payload.phone,
                 message: payload.text.message || payload.text,
                 isFromMe: isFromMe,
+                isFromApi: isFromApi
             };
         }
 
