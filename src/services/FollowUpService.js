@@ -89,7 +89,7 @@ class FollowUpService {
                 where: {
                     status: 'active',
                     ai_status: { [Op.ne]: 'active' }, // AI is NOT active
-                    last_interaction_at: { [Op.lt]: cutoffTime },
+                    // Removed cutoffTime check so paused leads appear immediately
                     followup_count: { [Op.lt]: this.maxFollowups },
                 },
                 order: [['last_interaction_at', 'ASC']],

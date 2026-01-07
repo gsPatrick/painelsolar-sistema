@@ -50,7 +50,9 @@ const messageController = {
                 await whatsAppService.sendMessage(lead.phone, content, 2);
 
                 // 4. PAUSE AI (Human Intervention)
+                // 4. PAUSE AI (Human Intervention)
                 if (lead.ai_status !== 'human_intervention') {
+                    console.log(`[MessageController] Pausing AI for lead ${lead.id} due to manual message`);
                     lead.ai_status = 'human_intervention';
                     lead.ai_paused_at = new Date();
                     await lead.save();
@@ -58,12 +60,15 @@ const messageController = {
                     // Notify frontend via Socket.IO
                     const io = req.app.get('io');
                     if (io) {
+                        console.log(`[MessageController] Emitting ai_paused_notification for lead ${lead.id}`);
                         io.emit('ai_paused_notification', {
                             leadId: lead.id,
                             leadName: lead.name,
                             timestamp: new Date()
                         });
                     }
+                } else {
+                    console.log(`[MessageController] AI already paused for lead ${lead.id}`);
                 }
             }
 
