@@ -201,6 +201,50 @@ cron.schedule('0 8,10,12,14,16,18,20 * * *', async () => {
     }
 });
 
+// Move silent leads to Follow-up pipeline - runs every hour
+const { Lead } = require('./src/models');
+const { Op } = require('sequelize');
+
+cron.schedule('30 * * * *', async () => {
+    console.log('[Cron] Checking for silent leads to move to Follow-up...');
+
+    try {
+        // Find "Primeiro Contato" and "Follow-up" pipelines
+        const primeiroContato = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
+        const followupPipeline = await Pipeline.findOne({ where: { title: 'Follow-up' } });
+
+        if (!primeiroContato || !followupPipeline) {
+            console.log('[Cron] Pipelines not found, skipping');
+            return;
+        }
+
+        // Find leads in "Primeiro Contato" with last interaction > 24h ago
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        const silentLeads = await Lead.findAll({
+            where: {
+                pipeline_id: primeiroContato.id,
+                last_interaction_at: {
+                    [Op.lt]: twentyFourHoursAgo
+                },
+                ai_enabled: true, // Only if AI is still enabled (not manually handled)
+            }
+        });
+
+        let movedCount = 0;
+        for (const lead of silentLeads) {
+            lead.pipeline_id = followupPipeline.id;
+            await lead.save();
+            movedCount++;
+            console.log(`[Cron] Moved lead ${lead.id} (${lead.name}) to Follow-up`);
+        }
+
+        console.log(`[Cron] Silent leads check complete: ${movedCount} leads moved to Follow-up`);
+    } catch (error) {
+        console.error('[Cron] Error moving silent leads:', error.message);
+    }
+});
+
 // Daily summary alert job - runs every day at 9:00 AM
 cron.schedule('0 9 * * *', async () => {
     console.log('[Cron] Running daily summary alert job...');

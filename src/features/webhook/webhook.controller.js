@@ -1,4 +1,4 @@
-const { Lead, Message, Pipeline, SystemSettings } = require('../../models');
+const { Lead, Message, Pipeline, SystemSettings, AdminNumber } = require('../../models');
 const leadService = require('../lead/lead.service');
 const openAIService = require('../../services/OpenAIService');
 const whatsAppService = require('../../services/WhatsAppService');
@@ -288,11 +288,103 @@ class WebhookController {
         // Try to extract lead info from message
         const extractedInfo = await openAIService.extractLeadInfo(messageText);
         if (extractedInfo.success && extractedInfo.data) {
-            const { name, city, state } = extractedInfo.data;
+            const { name, monthly_bill, city, state } = extractedInfo.data;
+
+            // Update lead info if found
             if (name && lead.name.startsWith('WhatsApp')) {
                 lead.name = name;
-                await lead.save();
             }
+            if (monthly_bill) lead.monthly_bill = monthly_bill;
+            if (city) lead.city = city;
+            if (state) lead.state = state;
+
+            await lead.save();
+
+            // Check if lead has all required info to move to "Enviar Proposta"
+            await this.checkLeadCompletion(lead, phone);
+        }
+    }
+
+    /**
+     * Check if lead has all required info and move to "Enviar Proposta" + notify admins
+     */
+    async checkLeadCompletion(lead, phone) {
+        try {
+            // Reload lead to get latest data
+            await lead.reload();
+
+            // Check if lead has the essential info (bill value OR city mentioned in messages)
+            const hasEssentialInfo = lead.monthly_bill || lead.city;
+
+            if (!hasEssentialInfo) {
+                return; // Not complete yet
+            }
+
+            // Check if already moved (not in "Primeiro Contato")
+            const primeiroContato = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
+            if (!primeiroContato || lead.pipeline_id !== primeiroContato.id) {
+                return; // Already moved or not in first stage
+            }
+
+            // Move to "Enviar Proposta"
+            const enviarProposta = await Pipeline.findOne({ where: { title: 'Enviar Proposta' } });
+            if (!enviarProposta) {
+                console.warn('[Webhook] "Enviar Proposta" pipeline not found');
+                return;
+            }
+
+            lead.pipeline_id = enviarProposta.id;
+            lead.ai_enabled = false; // Disable AI - human takes over
+            await lead.save();
+
+            console.log(`[Webhook] Lead ${lead.id} (${lead.name}) moved to "Enviar Proposta"`);
+
+            // Send notification to all active admin numbers
+            await this.notifyAdminsAboutLead(lead);
+
+        } catch (error) {
+            console.error('[Webhook] Error checking lead completion:', error.message);
+        }
+    }
+
+    /**
+     * Send WhatsApp notification to all active admin numbers about a lead ready for proposal
+     */
+    async notifyAdminsAboutLead(lead) {
+        try {
+            const adminNumbers = await AdminNumber.findAll({
+                where: { active: true }
+            });
+
+            if (adminNumbers.length === 0) {
+                console.log('[Webhook] No active admin numbers to notify');
+                return;
+            }
+
+            // Build summary message
+            const message = `🔔 *NOVO LEAD PRONTO PARA PROPOSTA*
+
+👤 *Nome:* ${lead.name || 'Não informado'}
+📞 *Telefone:* ${lead.phone}
+📍 *Cidade:* ${lead.city || 'Não informada'}
+💡 *Conta de Luz:* ${lead.monthly_bill ? `R$ ${lead.monthly_bill}` : 'Não informada'}
+
+⏰ *Recebido em:* ${new Date(lead.createdAt).toLocaleString('pt-BR')}
+
+📋 Este lead completou o atendimento inicial e está aguardando uma proposta comercial!`;
+
+            // Send to all admin numbers
+            for (const admin of adminNumbers) {
+                try {
+                    await whatsAppService.sendMessage(admin.phone, message);
+                    console.log(`[Webhook] Notified admin ${admin.name} (${admin.phone}) about lead ${lead.id}`);
+                } catch (err) {
+                    console.error(`[Webhook] Failed to notify admin ${admin.name}:`, err.message);
+                }
+            }
+
+        } catch (error) {
+            console.error('[Webhook] Error notifying admins:', error.message);
         }
     }
 
