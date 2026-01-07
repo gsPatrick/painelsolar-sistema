@@ -77,6 +77,11 @@ class PipelineService {
             throw new Error('Pipeline não encontrado');
         }
 
+        // Prevent deletion of protected pipelines (like "Primeiro Contato")
+        if (pipeline.is_protected) {
+            throw new Error('Este pipeline não pode ser excluído pois é protegido pelo sistema');
+        }
+
         // Move leads to null before deleting
         await Lead.update({ pipeline_id: null }, { where: { pipeline_id: id } });
         await pipeline.destroy();

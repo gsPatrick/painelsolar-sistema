@@ -26,6 +26,10 @@ const Pipeline = sequelize.define('Pipeline', {
         allowNull: false,
         defaultValue: 3, // Default: 3 days max without interaction
     },
+    is_protected: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
 }, {
     tableName: 'pipelines',
 });

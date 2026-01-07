@@ -7,7 +7,7 @@ const cron = require('node-cron');
 const http = require('http');
 const { Server } = require('socket.io');
 
-const { sequelize, User } = require('./src/models');
+const { sequelize, User, Pipeline } = require('./src/models');
 const routes = require('./src/routes');
 const env = require('./src/config/env');
 const bcrypt = require('bcryptjs');
@@ -113,6 +113,34 @@ async function createDefaultAdmin() {
         }
     } catch (error) {
         console.error('⚠️  Error creating default admin:', error.message);
+    }
+}
+
+// ===========================================
+// Default Pipelines Creation
+// ===========================================
+
+async function createDefaultPipelines() {
+    try {
+        const defaultPipelines = [
+            { title: 'Primeiro Contato', color: '#4318FF', order_index: 0, is_protected: true },
+            { title: 'Proposta Enviada', color: '#10B981', order_index: 1 },
+            { title: 'Negociação', color: '#F59E0B', order_index: 2 },
+            { title: 'Aguardando Assinatura', color: '#6366F1', order_index: 3 },
+            { title: 'Fechado/Ganho', color: '#22C55E', order_index: 4 },
+            { title: 'Perdido', color: '#EF4444', order_index: 5 },
+        ];
+
+        for (const pipeline of defaultPipelines) {
+            const existing = await Pipeline.findOne({ where: { title: pipeline.title } });
+            if (!existing) {
+                await Pipeline.create(pipeline);
+                console.log(`✅ Pipeline "${pipeline.title}" criado`);
+            }
+        }
+        console.log('ℹ️  Pipelines padrão verificados');
+    } catch (error) {
+        console.error('⚠️  Error creating default pipelines:', error.message);
     }
 }
 
@@ -244,6 +272,9 @@ async function startServer() {
         const { SystemSettings } = require('./src/models');
         await SystemSettings.seedDefaults();
         console.log('✅ System settings initialized');
+
+        // Create default pipelines
+        await createDefaultPipelines();
 
         // Start server
         server.listen(PORT, () => {
