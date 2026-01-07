@@ -20,8 +20,13 @@ class WebhookController {
                 return res.status(200).json({ message: 'Event ignored' });
             }
 
-            const { phone, message, isFromMe, isFromApi } = messageData;
-            console.log(`[Webhook Debug] Extracted: phone=${phone}, isFromMe=${isFromMe}, isFromApi=${isFromApi}, msg=${message}`);
+            const { phone, message, isFromMe, isFromApi, chatLid } = messageData;
+            console.log(`[Webhook Debug] Extracted: phone=${phone}, isFromMe=${isFromMe}, isFromApi=${isFromApi}, msg=${message}, chatLid=${chatLid}`);
+
+            // Link LID to Phone if available (Critical for finding lead later when using only LID)
+            if (chatLid && phone && !phone.includes('@lid')) {
+                await this.ensureLeadLid(phone, chatLid);
+            }
 
             // HUMAN HANDOVER: If message is from the business phone/system, pause AI for this lead
             // CRITICAL: Only pause if it was NOT sent via API (meaning it was typed manually on the phone by a human)
@@ -40,7 +45,7 @@ class WebhookController {
             const senderName = payload.senderName || payload.notifyName || payload.name || `WhatsApp ${phone}`;
 
             // Process incoming message
-            await this.processIncomingMessage(phone, message, senderName);
+            await this.processIncomingMessage(phone, message, senderName, chatLid);
 
             res.status(200).json({ message: 'Processed successfully' });
         } catch (error) {
@@ -65,7 +70,8 @@ class WebhookController {
                 phone: payload.phone,
                 message: payload.text.message || payload.text,
                 isFromMe: isFromMe,
-                isFromApi: isFromApi
+                isFromApi: isFromApi,
+                chatLid: payload.chatLid || (payload.from && payload.from.includes('@lid') ? payload.from : null)
             };
         }
 
@@ -124,20 +130,23 @@ class WebhookController {
     /**
      * Process incoming WhatsApp message
      */
-    async processIncomingMessage(phone, messageText, senderName) {
+    async processIncomingMessage(phone, messageText, senderName, chatLid) {
+        // ... (preserving logic) ...
         console.log(`[Webhook] Processing message from ${phone}: ${messageText}`);
 
         // --- TEST MODE WHITELIST ---
-        // Only allow specific number to interact with the bot
         const cleanPhone = phone.replace(/\D/g, '');
-        // Whitelist: 557182862912 (Log), 1982862912 (User Request), 5571982862912 (Potential 9th digit)
         const allowedNumbers = ['557182862912', '1982862912', '5571982862912'];
-
         const isAllowed = allowedNumbers.some(num => cleanPhone.includes(num) || num.includes(cleanPhone));
 
         if (!isAllowed) {
             console.log(`[Webhook] IGNORING message from ${phone} (Not in whitelist)`);
             return;
+        }
+
+        // Ensure LID is linked if provided
+        if (chatLid && !phone.includes('@lid')) {
+            await this.ensureLeadLid(phone, chatLid);
         }
         // ---------------------------
 
@@ -471,6 +480,22 @@ class WebhookController {
         } else {
             console.warn('[Webhook] Meta webhook verification failed');
             res.status(403).send('Verification failed');
+        }
+    }
+
+    /**
+     * Ensure Lead has whatsapp_lid saved
+     */
+    async ensureLeadLid(phone, lid) {
+        try {
+            const lead = await leadService.findByPhone(phone);
+            if (lead && !lead.whatsapp_lid) {
+                console.log(`[Webhook] Linking LID ${lid} to Lead ${lead.phone}`);
+                lead.whatsapp_lid = lid;
+                await lead.save();
+            }
+        } catch (err) {
+            console.error('[Webhook] Error linking LID:', err.message);
         }
     }
 }

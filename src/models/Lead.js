@@ -15,6 +15,10 @@ const Lead = sequelize.define('Lead', {
         type: DataTypes.STRING(20),
         allowNull: false,
     },
+    whatsapp_lid: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+    },
     source: {
         type: DataTypes.ENUM('manual', 'meta_ads', 'whatsapp'),
         defaultValue: 'manual',

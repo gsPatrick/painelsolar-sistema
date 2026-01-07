@@ -261,6 +261,18 @@ class LeadService {
      * Find lead by phone number (includes deleted but not blocked)
      */
     async findByPhone(phone) {
+        // If it's a LID (Linked Device ID), searching by exact match in whatsapp_lid
+        if (typeof phone === 'string' && phone.includes('@lid')) {
+            return Lead.findOne({
+                where: {
+                    whatsapp_lid: phone,
+                    status: {
+                        [Op.ne]: 'blocked',
+                    },
+                },
+            });
+        }
+
         const cleanPhone = phone.replace(/\D/g, '');
         return Lead.findOne({
             where: {
