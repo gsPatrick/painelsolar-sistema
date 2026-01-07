@@ -16,7 +16,7 @@ const Message = sequelize.define('Message', {
         allowNull: false,
     },
     sender: {
-        type: DataTypes.ENUM('user', 'ai'),
+        type: DataTypes.ENUM('user', 'ai', 'agent', 'system'),
         allowNull: false,
     },
     timestamp: {
