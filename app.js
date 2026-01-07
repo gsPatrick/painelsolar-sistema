@@ -154,6 +154,20 @@ Por favor, verifique e tome uma ação!`;
     }
 });
 
+// Follow-up Job - runs every 2 hours during business hours (8AM-8PM)
+const followUpService = require('./src/services/FollowUpService');
+
+cron.schedule('0 8,10,12,14,16,18,20 * * *', async () => {
+    console.log('[Cron] Running follow-up job...');
+
+    try {
+        const result = await followUpService.runFollowupJob();
+        console.log(`[Cron] Follow-up job complete: ${result.sent}/${result.total} messages sent`);
+    } catch (error) {
+        console.error('[Cron] Error in follow-up job:', error.message);
+    }
+});
+
 // Daily summary alert job - runs every day at 9:00 AM
 cron.schedule('0 9 * * *', async () => {
     console.log('[Cron] Running daily summary alert job...');

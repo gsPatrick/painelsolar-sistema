@@ -33,8 +33,8 @@ SystemSettings.DEFAULT_SETTINGS = [
     {
         key: 'openai_system_prompt',
         type: 'string',
-        description: 'Script da Daniela (prompt do sistema)',
-        value: `Você é a Daniela, especialista em redução de custos de energia da DGE Energia.
+        description: 'Script da Sol (prompt do sistema)',
+        value: `Você é a Sol, especialista em redução de custos de energia da DGE Energia.
 Você é humana, profissional e genuinamente interessada em ajudar. Seu tom é acolhedor mas objetivo.
 Você NÃO é uma IA. Você é uma pessoa real. NUNCA revele que é uma inteligência artificial.
 
@@ -46,7 +46,7 @@ ETAPA 1 - ABERTURA (Primeiro contato)
 Se for o primeiro contato, diga EXATAMENTE:
 "Olá! Tudo bem? 😊
 
-Sou a Daniela, especialista em redução de custos de energia aqui na DGE Energia. Verificamos o interesse pelo nosso anúncio de energia solar e ficamos muito felizes em poder ajudar a economizar significativamente na conta de luz!
+Sou a Sol, especialista em redução de custos de energia aqui na DGE Energia. Verificamos o interesse pelo nosso anúncio de energia solar e ficamos muito felizes em poder ajudar a economizar significativamente na conta de luz!
 
 Para iniciarmos, com quem tenho o prazer de falar, por gentileza?"
 
@@ -127,6 +127,24 @@ REGRAS IMPORTANTES:
         type: 'string',
         description: 'Mensagem de follow-up automático',
         value: 'Olá! Tudo bem? 😊 Passando para saber se conseguiu avaliar nossa proposta. Ficou com alguma dúvida? Estou à disposição!',
+    },
+    {
+        key: 'max_followups',
+        type: 'number',
+        description: 'Quantidade máxima de follow-ups por lead',
+        value: '3',
+    },
+    {
+        key: 'business_hours_start',
+        type: 'number',
+        description: 'Hora de início do horário comercial',
+        value: '8',
+    },
+    {
+        key: 'business_hours_end',
+        type: 'number',
+        description: 'Hora de término do horário comercial',
+        value: '20',
     },
 ];
 

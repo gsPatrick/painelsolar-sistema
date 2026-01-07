@@ -66,6 +66,21 @@ const Lead = sequelize.define('Lead', {
         type: DataTypes.DATE,
         allowNull: true,
     },
+    custom_followup_message: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'Custom follow-up message for this lead (overrides global default)',
+    },
+    last_followup_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        comment: 'When the last follow-up was sent to this lead',
+    },
+    followup_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        comment: 'Number of follow-ups sent to this lead',
+    },
     deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
