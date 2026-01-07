@@ -222,6 +222,7 @@ class WebhookController {
         }, dynamicPrompt);
 
         if (aiResponse.success && aiResponse.message) {
+            console.log('[Webhook Debug] AI Raw Response:', aiResponse.message);
             let responseText = aiResponse.message;
             let shouldSendVideo = false;
 
