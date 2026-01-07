@@ -25,7 +25,7 @@ class WebhookController {
             // HUMAN HANDOVER: If message is from the business phone/system, pause AI for this lead
             // CRITICAL: Only pause if it was NOT sent via API (meaning it was typed manually on the phone by a human)
             if (isFromMe && !isFromApi) {
-                await this.handleHumanIntervention(phone);
+                await this.handleHumanIntervention(phone, req.app.get('io'));
                 return res.status(200).json({ message: 'Human intervention detected (Manual Message), AI paused' });
             }
 
@@ -96,7 +96,7 @@ class WebhookController {
     /**
      * Handle human intervention - pause AI for this lead
      */
-    async handleHumanIntervention(phone) {
+    async handleHumanIntervention(phone, io) {
         try {
             const lead = await leadService.findByPhone(phone);
             if (lead) {
@@ -104,6 +104,14 @@ class WebhookController {
                 lead.ai_paused_at = new Date();
                 await lead.save();
                 console.log(`[Webhook] Human intervention detected. AI paused for lead ${lead.id} (${lead.name})`);
+
+                if (io) {
+                    io.emit('ai_paused_notification', {
+                        leadId: lead.id,
+                        leadName: lead.name,
+                        timestamp: new Date()
+                    });
+                }
             }
         } catch (error) {
             console.error('[Webhook] Error handling human intervention:', error.message);
