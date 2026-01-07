@@ -216,8 +216,8 @@ async function startServer() {
 
         // Sync models (in development, use { alter: true })
         if (env.NODE_ENV === 'development') {
-            await sequelize.sync({ alter: true });
-            console.log('✅ Database synchronized');
+            await sequelize.sync({ force: true });
+            console.log('✅ Database synchronized (FORCE TRUE)');
         }
 
         // Create default admin user
