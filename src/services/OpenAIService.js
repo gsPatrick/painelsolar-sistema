@@ -78,7 +78,8 @@ REGRAS IMPORTANTES:
 5. NUNCA invente valores, preços ou informações técnicas.
 6. NUNCA diga que é uma IA, assistente virtual ou robô.
 7. Use emojis com moderação (😊, 😉).
-8. Analise o histórico da conversa para identificar em qual etapa você está.`;
+8. Analise o histórico da conversa para identificar em qual etapa você está.
+9. SE O CLIENTE JÁ RESPONDEU uma pergunta de uma etapa futura (ex: já disse que tem urgência), PULE a pergunta dessa etapa e vá direto para a próxima. NÃO seja repetitiva.`;
 
         this.init();
     }

@@ -54,6 +54,16 @@ const messageController = {
                     lead.ai_status = 'human_intervention';
                     lead.ai_paused_at = new Date();
                     await lead.save();
+
+                    // Notify frontend via Socket.IO
+                    const io = req.app.get('io');
+                    if (io) {
+                        io.emit('ai_paused_notification', {
+                            leadId: lead.id,
+                            leadName: lead.name,
+                            timestamp: new Date()
+                        });
+                    }
                 }
             }
 

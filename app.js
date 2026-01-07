@@ -28,6 +28,8 @@ const io = new Server(server, {
     }
 });
 
+app.set('io', io);
+
 // Socket.io event handling
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
