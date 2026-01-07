@@ -27,8 +27,11 @@ class WebhookController {
                 return res.status(200).json({ message: 'Outgoing message ignored' });
             }
 
+            // Extract sender name
+            const senderName = payload.senderName || payload.notifyName || payload.name || `WhatsApp ${phone}`;
+
             // Process incoming message
-            await this.processIncomingMessage(phone, message);
+            await this.processIncomingMessage(phone, message, senderName);
 
             res.status(200).json({ message: 'Processed successfully' });
         } catch (error) {
@@ -83,7 +86,7 @@ class WebhookController {
     /**
      * Process incoming WhatsApp message
      */
-    async processIncomingMessage(phone, messageText) {
+    async processIncomingMessage(phone, messageText, senderName) {
         console.log(`[Webhook] Processing message from ${phone}: ${messageText}`);
 
         // --- TEST MODE WHITELIST ---
@@ -103,8 +106,8 @@ class WebhookController {
         // Find or create lead
         let lead = await leadService.findByPhone(phone);
 
-        // Try to get name from payload
-        const senderName = payload.senderName || payload.notifyName || payload.name || `WhatsApp ${phone}`;
+        // Use provided senderName or fallback
+        senderName = senderName || `WhatsApp ${phone}`;
 
         if (!lead) {
             // Create new lead in 'Primeiro Contato' pipeline
