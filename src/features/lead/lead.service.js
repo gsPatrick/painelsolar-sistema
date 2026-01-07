@@ -4,10 +4,12 @@ const { Op } = require('sequelize');
 
 class LeadService {
     /**
-     * Get all leads with SLA status
+     * Get all leads with SLA status (excludes deleted/blocked by default)
      */
     async getAll(filters = {}) {
-        const where = {};
+        const where = {
+            status: 'active', // Only active leads by default
+        };
 
         if (filters.pipeline_id) {
             where.pipeline_id = filters.pipeline_id;
@@ -17,6 +19,9 @@ class LeadService {
         }
         if (filters.source) {
             where.source = filters.source;
+        }
+        if (filters.include_all_status) {
+            delete where.status; // Include all statuses
         }
 
         const leads = await Lead.findAll({
@@ -75,6 +80,7 @@ class LeadService {
             name,
             phone,
             source: source || 'manual',
+            status: 'active',
             meta_campaign_data: meta_campaign_data || {},
             is_important: is_important || false,
             pipeline_id: assignedPipelineId,
@@ -192,7 +198,7 @@ class LeadService {
     }
 
     /**
-     * Delete a lead
+     * Soft delete a lead (can be restored if contacts again)
      */
     async delete(id) {
         const lead = await Lead.findByPk(id);
@@ -200,12 +206,59 @@ class LeadService {
             throw new Error('Lead não encontrado');
         }
 
-        await lead.destroy();
-        return { message: 'Lead excluído com sucesso' };
+        lead.status = 'deleted';
+        lead.deleted_at = new Date();
+        await lead.save();
+
+        return { message: 'Lead excluído com sucesso', id };
     }
 
     /**
-     * Find lead by phone number
+     * Hard delete a lead (permanent)
+     */
+    async hardDelete(id) {
+        const lead = await Lead.findByPk(id);
+        if (!lead) {
+            throw new Error('Lead não encontrado');
+        }
+
+        await lead.destroy();
+        return { message: 'Lead excluído permanentemente', id };
+    }
+
+    /**
+     * Block a lead (won't be created even if contacts again)
+     */
+    async block(id) {
+        const lead = await Lead.findByPk(id);
+        if (!lead) {
+            throw new Error('Lead não encontrado');
+        }
+
+        lead.status = 'blocked';
+        await lead.save();
+
+        return { message: 'Lead bloqueado com sucesso', id, lead };
+    }
+
+    /**
+     * Restore a deleted/blocked lead
+     */
+    async restore(id) {
+        const lead = await Lead.findByPk(id);
+        if (!lead) {
+            throw new Error('Lead não encontrado');
+        }
+
+        lead.status = 'active';
+        lead.deleted_at = null;
+        await lead.save();
+
+        return { message: 'Lead restaurado com sucesso', id, lead };
+    }
+
+    /**
+     * Find lead by phone number (includes deleted but not blocked)
      */
     async findByPhone(phone) {
         const cleanPhone = phone.replace(/\D/g, '');
@@ -214,7 +267,55 @@ class LeadService {
                 phone: {
                     [Op.like]: `%${cleanPhone.slice(-9)}%`, // Match last 9 digits
                 },
+                status: {
+                    [Op.ne]: 'blocked', // Not blocked
+                },
             },
+        });
+    }
+
+    /**
+     * Check if phone is blocked
+     */
+    async isPhoneBlocked(phone) {
+        const cleanPhone = phone.replace(/\D/g, '');
+        const blocked = await Lead.findOne({
+            where: {
+                phone: {
+                    [Op.like]: `%${cleanPhone.slice(-9)}%`,
+                },
+                status: 'blocked',
+            },
+        });
+        return !!blocked;
+    }
+
+    /**
+     * Get leads with SLA alerts (RED status - 3+ days overdue)
+     */
+    async getSlaAlerts() {
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+        const leads = await Lead.findAll({
+            where: {
+                status: 'active',
+                last_interaction_at: {
+                    [Op.lt]: threeDaysAgo,
+                },
+            },
+            include: [{ model: Pipeline, as: 'pipeline' }],
+            order: [['last_interaction_at', 'ASC']],
+        });
+
+        return leads.map(lead => {
+            const leadData = lead.toJSON();
+            const now = new Date();
+            const lastInteraction = new Date(leadData.last_interaction_at);
+            const daysPassed = Math.floor((now - lastInteraction) / (1000 * 60 * 60 * 24));
+            leadData.days_overdue = daysPassed;
+            leadData.sla_status = 'RED';
+            return leadData;
         });
     }
 
@@ -232,6 +333,7 @@ class LeadService {
             const leads = await Lead.findAll({
                 where: {
                     pipeline_id: pipeline.id,
+                    status: 'active',
                     last_interaction_at: {
                         [Op.lt]: cutoffDate,
                     },
@@ -267,3 +369,4 @@ class LeadService {
 }
 
 module.exports = new LeadService();
+

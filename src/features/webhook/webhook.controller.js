@@ -103,21 +103,45 @@ class WebhookController {
         // Find or create lead
         let lead = await leadService.findByPhone(phone);
 
+        // Try to get name from payload
+        const senderName = payload.senderName || payload.notifyName || payload.name || `WhatsApp ${phone}`;
+
         if (!lead) {
-            // Create new lead in first pipeline
-            const firstPipeline = await Pipeline.findOne({
-                order: [['order_index', 'ASC']],
+            // Create new lead in 'Primeiro Contato' pipeline
+            let targetPipeline = await Pipeline.findOne({
+                where: { title: 'Primeiro Contato' }
             });
 
+            if (!targetPipeline) {
+                // Fallback to first pipeline by order if 'Primeiro Contato' doesn't exist
+                targetPipeline = await Pipeline.findOne({
+                    order: [['order_index', 'ASC']],
+                });
+            }
+
+            // If absolutely no pipeline exists (edge case), create one
+            if (!targetPipeline) {
+                targetPipeline = await Pipeline.create({
+                    title: 'Primeiro Contato',
+                    color: '#F59E0B',
+                    order_index: 1,
+                    sla_limit_days: 2
+                });
+            }
+
             lead = await Lead.create({
-                name: `WhatsApp ${phone}`,
+                name: senderName, // Use extracted name or fallback
                 phone,
                 source: 'whatsapp',
-                pipeline_id: firstPipeline?.id || null,
+                pipeline_id: targetPipeline.id,
                 last_interaction_at: new Date(),
             });
 
-            console.log(`[Webhook] Created new lead: ${lead.id}`);
+            console.log(`[Webhook] Created new lead: ${lead.id} in pipeline: ${targetPipeline.title}`);
+        } else if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
+            // Update name if we have a better one now
+            lead.name = senderName;
+            await lead.save();
         }
 
         // Update last interaction
@@ -157,20 +181,45 @@ class WebhookController {
         });
 
         if (aiResponse.success && aiResponse.message) {
-            // Save AI response
+            let responseText = aiResponse.message;
+            let shouldSendVideo = false;
+
+            // Check for video tag
+            if (responseText.includes('[ENVIAR_VIDEO_PROVA_SOCIAL]')) {
+                shouldSendVideo = true;
+                responseText = responseText.replace('[ENVIAR_VIDEO_PROVA_SOCIAL]', '').trim();
+            }
+
+            // Save AI response (cleaned text)
             await Message.create({
                 lead_id: lead.id,
-                content: aiResponse.message,
+                content: responseText,
                 sender: 'ai',
                 timestamp: new Date(),
             });
 
-            // Send via WhatsApp
-            await whatsAppService.sendMessage(phone, aiResponse.message);
+            // Send text via WhatsApp (with typing indicator for human-like feel)
+            await whatsAppService.sendMessage(phone, responseText, 3);
             console.log(`[Webhook] AI response sent to ${phone}`);
+
+            // Send video if tag was present
+            if (shouldSendVideo) {
+                const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
+                if (videoUrl) {
+                    await whatsAppService.sendVideo(
+                        phone,
+                        videoUrl,
+                        '👆 Confira o depoimento de um dos nossos clientes!',
+                        { delayTyping: 2 }
+                    );
+                    console.log(`[Webhook] Social proof video sent to ${phone}`);
+                } else {
+                    console.warn('[Webhook] PROVA_SOCIAL_VIDEO_URL not configured. Video not sent.');
+                }
+            }
         } else if (aiResponse.fallbackMessage) {
             // Send fallback message
-            await whatsAppService.sendMessage(phone, aiResponse.fallbackMessage);
+            await whatsAppService.sendMessage(phone, aiResponse.fallbackMessage, 2);
         }
 
         // Try to extract lead info from message
@@ -193,52 +242,160 @@ class WebhookController {
             const payload = req.body;
             console.log('[Webhook] Received Meta payload:', JSON.stringify(payload, null, 2));
 
+            // Respond quickly to prevent Meta timeout
+            res.status(200).send('EVENT_RECEIVED');
+
             // Meta Lead Ads webhook
-            if (payload.entry && payload.entry.length > 0) {
+            if (payload.object === 'page' && payload.entry && payload.entry.length > 0) {
                 for (const entry of payload.entry) {
                     if (entry.changes) {
                         for (const change of entry.changes) {
                             if (change.field === 'leadgen') {
-                                await this.processMetaLead(change.value);
+                                // Process asynchronously to not block response
+                                this.processMetaLead(change.value).catch(err => {
+                                    console.error('[Webhook] Error processing Meta lead:', err.message);
+                                });
                             }
                         }
                     }
                 }
             }
-
-            res.status(200).json({ message: 'Processed successfully' });
         } catch (error) {
             console.error('[Webhook] Error handling Meta webhook:', error.message);
-            res.status(500).json({ error: error.message });
+            // Still respond 200 to prevent retries
+            if (!res.headersSent) {
+                res.status(200).send('ERROR_LOGGED');
+            }
         }
     }
 
     /**
-     * Process Meta Lead Ads lead
+     * Process Meta Lead Ads lead with full Graph API data retrieval
      */
     async processMetaLead(leadData) {
         console.log('[Webhook] Processing Meta lead:', leadData);
 
-        const firstPipeline = await Pipeline.findOne({
-            order: [['order_index', 'ASC']],
+        // Import MetaService here to avoid circular dependencies
+        const metaService = require('../../services/MetaService');
+
+        const { leadgen_id, ad_id, form_id, page_id } = leadData;
+
+        let completeLeadData;
+
+        try {
+            // Fetch complete lead data with campaign metadata from Graph API
+            if (metaService.isConfigured()) {
+                completeLeadData = await metaService.getCompleteLeadData(leadgen_id, ad_id);
+                console.log('[Webhook] Complete Meta lead data:', JSON.stringify(completeLeadData, null, 2));
+            } else {
+                console.warn('[Webhook] MetaService not configured. Using basic lead data.');
+                completeLeadData = {
+                    leadgen_id,
+                    name: 'Meta Lead',
+                    phone: null,
+                    meta_campaign_data: { form_id, page_id, ad_id },
+                };
+            }
+        } catch (error) {
+            console.error('[Webhook] Error fetching complete lead data from Meta:', error.message);
+            completeLeadData = {
+                leadgen_id,
+                name: 'Meta Lead',
+                phone: null,
+                meta_campaign_data: { form_id, page_id, ad_id, error: error.message },
+            };
+        }
+
+        // Find "Primeiro Contato" pipeline
+        let targetPipeline = await Pipeline.findOne({
+            where: { title: 'Primeiro Contato' }
         });
 
-        // Create lead with Meta campaign data
-        const lead = await Lead.create({
-            name: leadData.full_name || 'Meta Lead',
-            phone: leadData.phone_number || '',
-            source: 'meta_ads',
-            meta_campaign_data: leadData,
-            pipeline_id: firstPipeline?.id || null,
-            last_interaction_at: new Date(),
-        });
+        if (!targetPipeline) {
+            targetPipeline = await Pipeline.findOne({
+                order: [['order_index', 'ASC']],
+            });
+        }
 
-        console.log(`[Webhook] Created Meta lead: ${lead.id}`);
+        // Check if lead already exists by phone
+        let lead = null;
+        if (completeLeadData.phone) {
+            lead = await leadService.findByPhone(completeLeadData.phone);
+        }
 
-        // Send welcome message if phone is available
+        if (lead) {
+            // Update existing lead with Meta campaign data
+            lead.meta_campaign_data = {
+                ...lead.meta_campaign_data,
+                ...completeLeadData.meta_campaign_data,
+            };
+            lead.last_interaction_at = new Date();
+            await lead.save();
+            console.log(`[Webhook] Updated existing lead: ${lead.id} with Meta data`);
+        } else {
+            // Create new lead with Meta campaign data
+            lead = await Lead.create({
+                name: completeLeadData.name || 'Meta Lead',
+                phone: completeLeadData.phone || '',
+                source: 'meta_ads',
+                meta_campaign_data: completeLeadData.meta_campaign_data || {},
+                pipeline_id: targetPipeline?.id || null,
+                last_interaction_at: new Date(),
+            });
+            console.log(`[Webhook] Created Meta lead: ${lead.id} (${lead.name})`);
+        }
+
+        // TRIGGER AI DANIELA GREETING 🎯
+        // Send welcome message immediately via WhatsApp if phone is available
         if (lead.phone) {
-            const welcomeMessage = `Olá ${lead.name}! 👋\n\nVi que você tem interesse em energia solar. Sou a Carol da DGE Energia e estou aqui para ajudar!\n\nPara começarmos, poderia me dizer qual é o valor aproximado da sua conta de luz?`;
-            await whatsAppService.sendMessage(lead.phone, welcomeMessage);
+            try {
+                // Get Daniela's opening message
+                const recentMessages = []; // No previous messages for new lead
+                const aiResponse = await openAIService.generateResponse(recentMessages, {
+                    name: lead.name,
+                    phone: lead.phone,
+                });
+
+                if (aiResponse.success && aiResponse.message) {
+                    let responseText = aiResponse.message;
+                    let shouldSendVideo = false;
+
+                    // Check for video tag
+                    if (responseText.includes('[ENVIAR_VIDEO_PROVA_SOCIAL]')) {
+                        shouldSendVideo = true;
+                        responseText = responseText.replace('[ENVIAR_VIDEO_PROVA_SOCIAL]', '').trim();
+                    }
+
+                    // Save AI message to history
+                    await Message.create({
+                        lead_id: lead.id,
+                        content: responseText,
+                        sender: 'ai',
+                        timestamp: new Date(),
+                    });
+
+                    // Send via WhatsApp with typing delay for human-like feel
+                    await whatsAppService.sendMessage(lead.phone, responseText, 3);
+                    console.log(`[Webhook] AI Daniela greeting sent to Meta lead: ${lead.phone}`);
+
+                    // Send video if tag was present
+                    if (shouldSendVideo) {
+                        const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
+                        if (videoUrl) {
+                            await whatsAppService.sendVideo(
+                                lead.phone,
+                                videoUrl,
+                                '👆 Confira o depoimento de um dos nossos clientes!',
+                                { delayTyping: 2 }
+                            );
+                            console.log(`[Webhook] Social proof video sent to ${lead.phone}`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('[Webhook] Error sending AI greeting to Meta lead:', error.message);
+                // Don't fail the whole process if greeting fails
+            }
         }
 
         return lead;
@@ -247,7 +404,7 @@ class WebhookController {
     /**
      * GET /webhook/meta (for verification)
      */
-    async verifyMetaWebhook(req, res) {
+    verifyMetaWebhook(req, res) {
         const mode = req.query['hub.mode'];
         const token = req.query['hub.verify_token'];
         const challenge = req.query['hub.challenge'];
@@ -259,6 +416,7 @@ class WebhookController {
             console.log('[Webhook] Meta webhook verified');
             res.status(200).send(challenge);
         } else {
+            console.warn('[Webhook] Meta webhook verification failed');
             res.status(403).send('Verification failed');
         }
     }

@@ -107,7 +107,7 @@ class LeadController {
     }
 
     /**
-     * DELETE /leads/:id
+     * DELETE /leads/:id - Soft delete
      */
     async delete(req, res) {
         try {
@@ -116,6 +116,45 @@ class LeadController {
         } catch (error) {
             console.error('[LeadController] Delete error:', error.message);
             res.status(400).json({ error: error.message });
+        }
+    }
+
+    /**
+     * PUT /leads/:id/block
+     */
+    async block(req, res) {
+        try {
+            const result = await leadService.block(req.params.id);
+            res.status(200).json(result);
+        } catch (error) {
+            console.error('[LeadController] Block error:', error.message);
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    /**
+     * PUT /leads/:id/restore
+     */
+    async restore(req, res) {
+        try {
+            const result = await leadService.restore(req.params.id);
+            res.status(200).json(result);
+        } catch (error) {
+            console.error('[LeadController] Restore error:', error.message);
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    /**
+     * GET /leads/sla-alerts
+     */
+    async getSlaAlerts(req, res) {
+        try {
+            const leads = await leadService.getSlaAlerts();
+            res.status(200).json(leads);
+        } catch (error) {
+            console.error('[LeadController] GetSlaAlerts error:', error.message);
+            res.status(500).json({ error: error.message });
         }
     }
 
@@ -134,3 +173,4 @@ class LeadController {
 }
 
 module.exports = new LeadController();
+

@@ -20,6 +20,11 @@ const Lead = sequelize.define('Lead', {
         defaultValue: 'manual',
         allowNull: false,
     },
+    status: {
+        type: DataTypes.ENUM('active', 'deleted', 'blocked'),
+        defaultValue: 'active',
+        allowNull: false,
+    },
     meta_campaign_data: {
         type: DataTypes.JSONB,
         defaultValue: {},
@@ -52,8 +57,13 @@ const Lead = sequelize.define('Lead', {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
+    deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
     tableName: 'leads',
 });
 
 module.exports = Lead;
+

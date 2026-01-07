@@ -133,9 +133,9 @@ class WhatsAppService {
      * Send text message
      * @param {string} phone - Phone number (e.g., 5511999999999)
      * @param {string} message - Text message
-     * @param {string} messageId - Optional: ID of message to reply to
+     * @param {object} options - Optional: { messageId, delayTyping, delayMessage }
      */
-    async sendText(phone, message, messageId = null) {
+    async sendText(phone, message, options = {}) {
         try {
             if (!this.isConfigured()) {
                 console.warn('[WhatsAppService] Z-API not configured. Message not sent.');
@@ -148,8 +148,15 @@ class WhatsAppService {
                 message,
             };
 
-            if (messageId) {
-                data.messageId = messageId;
+            // Add optional parameters
+            if (options.messageId) {
+                data.messageId = options.messageId;
+            }
+            if (options.delayTyping) {
+                data.delayTyping = options.delayTyping; // Simulates "typing..." status
+            }
+            if (options.delayMessage) {
+                data.delayMessage = options.delayMessage;
             }
 
             const response = await axios.post(url, data, { headers: this.headers });
@@ -161,9 +168,9 @@ class WhatsAppService {
         }
     }
 
-    // Alias for sendText
-    async sendMessage(phone, message) {
-        return this.sendText(phone, message);
+    // Alias for sendText with default typing delay for human-like feel
+    async sendMessage(phone, message, delayTyping = 3) {
+        return this.sendText(phone, message, { delayTyping });
     }
 
     /**
@@ -225,8 +232,9 @@ class WhatsAppService {
      * @param {string} phone - Phone number
      * @param {string} videoUrl - URL of the video
      * @param {string} caption - Optional caption
+     * @param {object} options - Optional: { delayTyping, delayMessage }
      */
-    async sendVideo(phone, videoUrl, caption = '') {
+    async sendVideo(phone, videoUrl, caption = '', options = {}) {
         try {
             if (!this.isConfigured()) {
                 return { success: false, error: 'Z-API not configured' };
@@ -238,6 +246,13 @@ class WhatsAppService {
                 video: videoUrl,
                 caption,
             };
+
+            if (options.delayTyping) {
+                data.delayTyping = options.delayTyping;
+            }
+            if (options.delayMessage) {
+                data.delayMessage = options.delayMessage;
+            }
 
             const response = await axios.post(url, data, { headers: this.headers });
             console.log(`[WhatsAppService] Video sent to ${phone}`);

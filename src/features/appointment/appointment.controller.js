@@ -76,7 +76,9 @@ class AppointmentController {
             res.status(201).json(appointment);
         } catch (error) {
             console.error('[AppointmentController] Create error:', error.message);
-            res.status(400).json({ error: error.message });
+            // Return 409 Conflict if it's a schedule conflict
+            const statusCode = error.statusCode || 400;
+            res.status(statusCode).json({ error: error.message });
         }
     }
 

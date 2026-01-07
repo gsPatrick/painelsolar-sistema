@@ -7,6 +7,7 @@ const Lead = require('./Lead');
 const Task = require('./Task');
 const Appointment = require('./Appointment');
 const Message = require('./Message');
+const Setting = require('./Setting');
 
 // Define associations
 
@@ -58,4 +59,6 @@ module.exports = {
     Task,
     Appointment,
     Message,
+    Setting,
 };
+

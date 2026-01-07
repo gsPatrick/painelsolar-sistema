@@ -29,4 +29,11 @@ module.exports = {
 
   // Admin
   ADMIN_PHONE: process.env.ADMIN_PHONE || '',
+
+  // Meta (Facebook/Instagram) Lead Ads
+  META_PAGE_ACCESS_TOKEN: process.env.META_PAGE_ACCESS_TOKEN || '',
+  META_APP_ID: process.env.META_APP_ID || '',
+  META_APP_SECRET: process.env.META_APP_SECRET || '',
+  META_VERIFY_TOKEN: process.env.META_VERIFY_TOKEN || 'solar_crm_verify',
 };
+

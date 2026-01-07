@@ -117,9 +117,46 @@ async function createDefaultAdmin() {
 // Cron Jobs
 // ===========================================
 
-// Daily alert job - runs every day at 9:00 AM
+// Hourly SLA Check - runs every hour for critical alerts
+cron.schedule('0 * * * *', async () => {
+    console.log('[Cron] Running hourly SLA check...');
+
+    try {
+        const overdueLeads = await leadService.getOverdueLeads();
+
+        if (overdueLeads.length === 0) {
+            console.log('[Cron] No overdue leads found');
+            return;
+        }
+
+        // Filter leads stuck for 3+ days and send individual alerts
+        const now = new Date();
+        for (const lead of overdueLeads) {
+            const lastInteraction = new Date(lead.last_interaction_at);
+            const daysStuck = Math.floor((now - lastInteraction) / 86400000);
+
+            if (daysStuck >= 3) {
+                const alertMessage = `⚠️ *Alerta: Lead Parado*
+
+O lead *${lead.name}* está parado na etapa "*${lead.pipeline?.title || 'Desconhecida'}*" há *${daysStuck} dias*.
+
+📞 Telefone: ${lead.phone}
+📅 Última interação: ${lastInteraction.toLocaleDateString('pt-BR')}
+
+Por favor, verifique e tome uma ação!`;
+
+                await whatsAppService.sendAdminAlert(alertMessage);
+                console.log(`[Cron] Alert sent for lead ${lead.id} (${daysStuck} days)`);
+            }
+        }
+    } catch (error) {
+        console.error('[Cron] Error in hourly SLA check:', error.message);
+    }
+});
+
+// Daily summary alert job - runs every day at 9:00 AM
 cron.schedule('0 9 * * *', async () => {
-    console.log('[Cron] Running daily alert job...');
+    console.log('[Cron] Running daily summary alert job...');
 
     try {
         // Get overdue tasks
@@ -159,9 +196,9 @@ cron.schedule('0 9 * * *', async () => {
 
         // Send alert via WhatsApp
         await whatsAppService.sendAdminAlert(alertMessage);
-        console.log('[Cron] Daily alert sent successfully');
+        console.log('[Cron] Daily summary alert sent successfully');
     } catch (error) {
-        console.error('[Cron] Error in daily alert job:', error.message);
+        console.error('[Cron] Error in daily summary alert job:', error.message);
     }
 });
 

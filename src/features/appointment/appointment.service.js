@@ -62,11 +62,23 @@ class AppointmentService {
             throw new Error('Lead não encontrado');
         }
 
-        // Check for blocking: VISITA_TECNICA blocked if INSTALACAO exists same day
+        // Check for conflict: VISITA_TECNICA blocked if INSTALACAO exists on same day
         if (type === 'VISITA_TECNICA') {
-            const hasConflict = await this.checkInstallationConflict(date_time);
+            const hasConflict = await this.checkConflict(date_time, 'INSTALACAO');
             if (hasConflict) {
-                throw new Error('Não é possível agendar visita técnica neste horário. Existe uma instalação agendada.');
+                const error = new Error('Conflito de Agenda: Não é possível agendar Visita Técnica neste dia pois já existe uma Instalação confirmada.');
+                error.statusCode = 409;
+                throw error;
+            }
+        }
+
+        // Check for conflict: INSTALACAO blocked if VISITA_TECNICA exists on same day
+        if (type === 'INSTALACAO') {
+            const hasConflict = await this.checkConflict(date_time, 'VISITA_TECNICA');
+            if (hasConflict) {
+                const error = new Error('Conflito de Agenda: Não é possível agendar Instalação neste dia pois já existe uma Visita Técnica confirmada.');
+                error.statusCode = 409;
+                throw error;
             }
         }
 
@@ -77,6 +89,31 @@ class AppointmentService {
             status: 'scheduled',
             notes,
         });
+    }
+
+    /**
+     * Check if there's a conflicting appointment on the same day
+     * @param {Date} dateTime - The date/time to check
+     * @param {string} conflictType - The type of appointment that would cause a conflict
+     */
+    async checkConflict(dateTime, conflictType) {
+        const appointmentDate = new Date(dateTime);
+        const startOfDay = new Date(appointmentDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(appointmentDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const existingAppointment = await Appointment.findOne({
+            where: {
+                type: conflictType,
+                status: 'scheduled',
+                date_time: {
+                    [Op.between]: [startOfDay, endOfDay],
+                },
+            },
+        });
+
+        return !!existingAppointment;
     }
 
     /**
