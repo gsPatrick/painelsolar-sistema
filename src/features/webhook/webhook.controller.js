@@ -21,6 +21,7 @@ class WebhookController {
             }
 
             const { phone, message, isFromMe, isFromApi } = messageData;
+            console.log(`[Webhook Debug] Extracted: phone=${phone}, isFromMe=${isFromMe}, isFromApi=${isFromApi}, msg=${message}`);
 
             // HUMAN HANDOVER: If message is from the business phone/system, pause AI for this lead
             // CRITICAL: Only pause if it was NOT sent via API (meaning it was typed manually on the phone by a human)
@@ -97,8 +98,10 @@ class WebhookController {
      * Handle human intervention - pause AI for this lead
      */
     async handleHumanIntervention(phone, io) {
+        console.log(`[Webhook Debug] Handling Human Intervention for phone: ${phone}`);
         try {
             const lead = await leadService.findByPhone(phone);
+            if (!lead) console.log(`[Webhook Debug] Lead not found for phone: ${phone}`);
             if (lead) {
                 lead.ai_status = 'human_intervention';
                 lead.ai_paused_at = new Date();
