@@ -124,11 +124,13 @@ async function createDefaultPipelines() {
     try {
         const defaultPipelines = [
             { title: 'Primeiro Contato', color: '#4318FF', order_index: 0, is_protected: true },
-            { title: 'Proposta Enviada', color: '#10B981', order_index: 1 },
-            { title: 'Negociação', color: '#F59E0B', order_index: 2 },
-            { title: 'Aguardando Assinatura', color: '#6366F1', order_index: 3 },
-            { title: 'Fechado/Ganho', color: '#22C55E', order_index: 4 },
-            { title: 'Perdido', color: '#EF4444', order_index: 5 },
+            { title: 'Enviar Proposta', color: '#F59E0B', order_index: 1, is_protected: true },
+            { title: 'Proposta Enviada', color: '#10B981', order_index: 2 },
+            { title: 'Negociação', color: '#8B5CF6', order_index: 3 },
+            { title: 'Aguardando Assinatura', color: '#6366F1', order_index: 4 },
+            { title: 'Fechado/Ganho', color: '#22C55E', order_index: 5 },
+            { title: 'Perdido', color: '#EF4444', order_index: 6 },
+            { title: 'Follow-up', color: '#EC4899', order_index: 7, is_protected: true },
         ];
 
         for (const pipeline of defaultPipelines) {
