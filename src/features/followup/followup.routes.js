@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const followUpService = require('../../services/FollowUpService');
 const { Lead } = require('../../models');
-const authMiddleware = require('../../middlewares/auth');
+const { authenticate } = require('../auth/auth.middleware');
 
 // All routes require authentication
-router.use(authMiddleware);
+router.use(authenticate);
 
 /**
  * GET /followup/pending

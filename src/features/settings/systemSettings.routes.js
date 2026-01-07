@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const systemSettingsController = require('./systemSettings.controller');
-const authMiddleware = require('../../middlewares/auth');
+const { authenticate } = require('../auth/auth.middleware');
 
 // All routes require authentication
-router.use(authMiddleware);
+router.use(authenticate);
 
 // GET all settings
 router.get('/', systemSettingsController.getAll);
