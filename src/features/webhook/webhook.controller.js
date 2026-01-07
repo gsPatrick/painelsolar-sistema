@@ -194,8 +194,9 @@ class WebhookController {
             await lead.save();
         }
 
-        // Update last interaction
+        // Update last interaction and reset follow-up count (restart sequence)
         lead.last_interaction_at = new Date();
+        lead.followup_count = 0;
         await lead.save();
 
         // Save user message

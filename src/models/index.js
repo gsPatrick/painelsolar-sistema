@@ -9,6 +9,7 @@ const Appointment = require('./Appointment');
 const Message = require('./Message');
 const Setting = require('./Setting');
 const SystemSettings = require('./SystemSettings');
+const FollowUpRule = require('./FollowUpRule');
 
 // Define associations
 
@@ -18,6 +19,16 @@ Pipeline.hasMany(Lead, {
     as: 'leads',
 });
 Lead.belongsTo(Pipeline, {
+    foreignKey: 'pipeline_id',
+    as: 'pipeline',
+});
+
+// Pipeline has many FollowUpRules
+Pipeline.hasMany(FollowUpRule, {
+    foreignKey: 'pipeline_id',
+    as: 'followupRules',
+});
+FollowUpRule.belongsTo(Pipeline, {
     foreignKey: 'pipeline_id',
     as: 'pipeline',
 });
@@ -62,4 +73,5 @@ module.exports = {
     Message,
     Setting,
     SystemSettings,
+    FollowUpRule,
 };

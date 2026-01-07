@@ -1,11 +1,56 @@
 const express = require('express');
 const router = express.Router();
 const followUpService = require('../../services/FollowUpService');
-const { Lead } = require('../../models');
+const { Lead, FollowUpRule } = require('../../models');
 const { authenticate } = require('../auth/auth.middleware');
 
 // All routes require authentication
 router.use(authenticate);
+
+
+/**
+ * GET /followup/rules
+ * List all follow-up rules
+ */
+router.get('/rules', async (req, res) => {
+    try {
+        const rules = await FollowUpRule.findAll({
+            order: [['pipeline_id', 'ASC'], ['step_number', 'ASC']],
+            include: ['pipeline']
+        });
+        res.status(200).json(rules);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /followup/rules
+ * Create a new rule
+ */
+router.post('/rules', async (req, res) => {
+    try {
+        const rule = await FollowUpRule.create(req.body);
+        res.status(201).json(rule);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+/**
+ * DELETE /followup/rules/:id
+ * Delete a rule
+ */
+router.delete('/rules/:id', async (req, res) => {
+    try {
+        await FollowUpRule.destroy({ where: { id: req.params.id } });
+        res.status(200).json({ message: 'Rule deleted' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 
 /**
  * GET /followup/pending
