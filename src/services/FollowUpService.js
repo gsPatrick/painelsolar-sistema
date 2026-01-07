@@ -1,4 +1,4 @@
-const { Lead, Message, SystemSettings } = require('../models');
+const { Lead, Message, SystemSettings, FollowUpRule } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 
