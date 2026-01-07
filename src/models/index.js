@@ -8,6 +8,7 @@ const Task = require('./Task');
 const Appointment = require('./Appointment');
 const Message = require('./Message');
 const Setting = require('./Setting');
+const SystemSettings = require('./SystemSettings');
 
 // Define associations
 
@@ -60,5 +61,5 @@ module.exports = {
     Appointment,
     Message,
     Setting,
+    SystemSettings,
 };
-

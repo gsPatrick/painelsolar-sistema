@@ -170,6 +170,35 @@ class LeadController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    /**
+     * PATCH /leads/:id/ai-status
+     * Update AI status for a lead (toggle AI on/off)
+     */
+    async updateAiStatus(req, res) {
+        try {
+            const { ai_status } = req.body;
+
+            // Validate status
+            const validStatuses = ['active', 'paused', 'human_intervention'];
+            if (!validStatuses.includes(ai_status)) {
+                return res.status(400).json({
+                    error: `ai_status deve ser: ${validStatuses.join(', ')}`
+                });
+            }
+
+            const lead = await leadService.update(req.params.id, {
+                ai_status,
+                ai_paused_at: ai_status !== 'active' ? new Date() : null,
+            });
+
+            console.log(`[LeadController] AI status updated for lead ${lead.id}: ${ai_status}`);
+            res.status(200).json(lead);
+        } catch (error) {
+            console.error('[LeadController] UpdateAiStatus error:', error.message);
+            res.status(400).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new LeadController();

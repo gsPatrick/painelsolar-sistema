@@ -223,6 +223,11 @@ async function startServer() {
         // Create default admin user
         await createDefaultAdmin();
 
+        // Seed default SystemSettings
+        const { SystemSettings } = require('./src/models');
+        await SystemSettings.seedDefaults();
+        console.log('✅ System settings initialized');
+
         // Start server
         server.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);

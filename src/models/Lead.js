@@ -57,6 +57,15 @@ const Lead = sequelize.define('Lead', {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
+    ai_status: {
+        type: DataTypes.ENUM('active', 'paused', 'human_intervention'),
+        defaultValue: 'active',
+        allowNull: false,
+    },
+    ai_paused_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
     deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,

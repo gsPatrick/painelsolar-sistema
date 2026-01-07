@@ -1,4 +1,4 @@
-const { Lead, Message, Pipeline } = require('../../models');
+const { Lead, Message, Pipeline, SystemSettings } = require('../../models');
 const leadService = require('../lead/lead.service');
 const openAIService = require('../../services/OpenAIService');
 const whatsAppService = require('../../services/WhatsAppService');
@@ -22,9 +22,10 @@ class WebhookController {
 
             const { phone, message, isFromMe } = messageData;
 
-            // Ignore messages sent by us
+            // HUMAN HANDOVER: If message is from the business phone/system, pause AI for this lead
             if (isFromMe) {
-                return res.status(200).json({ message: 'Outgoing message ignored' });
+                await this.handleHumanIntervention(phone);
+                return res.status(200).json({ message: 'Human intervention detected, AI paused' });
             }
 
             // Extract sender name
@@ -81,6 +82,23 @@ class WebhookController {
 
         console.log('[Webhook] Could not extract message data from payload');
         return null;
+    }
+
+    /**
+     * Handle human intervention - pause AI for this lead
+     */
+    async handleHumanIntervention(phone) {
+        try {
+            const lead = await leadService.findByPhone(phone);
+            if (lead) {
+                lead.ai_status = 'human_intervention';
+                lead.ai_paused_at = new Date();
+                await lead.save();
+                console.log(`[Webhook] Human intervention detected. AI paused for lead ${lead.id} (${lead.name})`);
+            }
+        } catch (error) {
+            console.error('[Webhook] Error handling human intervention:', error.message);
+        }
     }
 
     /**
@@ -159,10 +177,21 @@ class WebhookController {
             timestamp: new Date(),
         });
 
-        // Check if human takeover is enabled
-        if (lead.human_takeover) {
-            console.log(`[Webhook] Human takeover enabled for lead ${lead.id}. AI skipped.`);
+        // Check if AI is paused for this lead (human takeover OR ai_status)
+        if (lead.human_takeover || lead.ai_status !== 'active') {
+            console.log(`[Webhook] AI is ${lead.ai_status} for lead ${lead.id}. Skipping AI response.`);
             return;
+        }
+
+        // Load dynamic prompt from SystemSettings
+        let dynamicPrompt = null;
+        try {
+            const promptSetting = await SystemSettings.findOne({ where: { key: 'openai_system_prompt' } });
+            if (promptSetting) {
+                dynamicPrompt = promptSetting.value;
+            }
+        } catch (err) {
+            console.warn('[Webhook] Could not load dynamic prompt, using default');
         }
 
         // Get recent conversation history
@@ -175,13 +204,13 @@ class WebhookController {
         // Reverse to get chronological order
         const conversationHistory = recentMessages.reverse();
 
-        // Generate AI response
+        // Generate AI response (pass dynamic prompt if available)
         const aiResponse = await openAIService.generateResponse(conversationHistory, {
             name: lead.name,
             phone: lead.phone,
             proposal_value: lead.proposal_value,
             system_size_kwp: lead.system_size_kwp,
-        });
+        }, dynamicPrompt);
 
         if (aiResponse.success && aiResponse.message) {
             let responseText = aiResponse.message;

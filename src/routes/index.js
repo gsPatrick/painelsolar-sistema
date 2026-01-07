@@ -10,6 +10,7 @@ const appointmentRoutes = require('../features/appointment/appointment.routes');
 const webhookRoutes = require('../features/webhook/webhook.routes');
 const messageRoutes = require('../features/message/message.routes');
 const settingsRoutes = require('../features/settings/settings.routes');
+const systemSettingsRoutes = require('../features/settings/systemSettings.routes');
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.use('/appointments', appointmentRoutes);
 router.use('/messages', messageRoutes);
 router.use('/webhook', webhookRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/system-settings', systemSettingsRoutes);
 
 // Serve video files from src/video directory
 router.get('/video/prova-social.mp4', (req, res) => {

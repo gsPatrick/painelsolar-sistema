@@ -1,10 +1,40 @@
-const OpenAI = require('openai');
-const env = require('../config/env');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-class OpenAIService {
-    constructor() {
-        this.client = null;
-        this.systemPrompt = `Você é a Daniela, especialista em redução de custos de energia da DGE Energia.
+const SystemSettings = sequelize.define('SystemSettings', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+    },
+    key: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique: true,
+    },
+    value: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    type: {
+        type: DataTypes.ENUM('string', 'number', 'boolean', 'json'),
+        defaultValue: 'string',
+    },
+    description: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+    },
+}, {
+    tableName: 'system_settings',
+});
+
+// Default settings to seed
+SystemSettings.DEFAULT_SETTINGS = [
+    {
+        key: 'openai_system_prompt',
+        type: 'string',
+        description: 'Script da Daniela (prompt do sistema)',
+        value: `Você é a Daniela, especialista em redução de custos de energia da DGE Energia.
 Você é humana, profissional e genuinamente interessada em ajudar. Seu tom é acolhedor mas objetivo.
 Você NÃO é uma IA. Você é uma pessoa real. NUNCA revele que é uma inteligência artificial.
 
@@ -78,122 +108,39 @@ REGRAS IMPORTANTES:
 5. NUNCA invente valores, preços ou informações técnicas.
 6. NUNCA diga que é uma IA, assistente virtual ou robô.
 7. Use emojis com moderação (😊, 😉).
-8. Analise o histórico da conversa para identificar em qual etapa você está.`;
+8. Analise o histórico da conversa para identificar em qual etapa você está.`,
+    },
+    {
+        key: 'followup_delay_hours',
+        type: 'number',
+        description: 'Horas de espera antes de enviar follow-up',
+        value: '24',
+    },
+    {
+        key: 'message_delay_seconds',
+        type: 'number',
+        description: 'Segundos de delay para simular digitação',
+        value: '3',
+    },
+    {
+        key: 'followup_message',
+        type: 'string',
+        description: 'Mensagem de follow-up automático',
+        value: 'Olá! Tudo bem? 😊 Passando para saber se conseguiu avaliar nossa proposta. Ficou com alguma dúvida? Estou à disposição!',
+    },
+];
 
-        this.init();
-    }
-
-    init() {
-        if (env.OPENAI_API_KEY) {
-            this.client = new OpenAI({
-                apiKey: env.OPENAI_API_KEY,
-            });
-            console.log('[OpenAIService] Initialized successfully');
-        } else {
-            console.warn('[OpenAIService] API key not configured. AI features disabled.');
+// Seed default settings
+SystemSettings.seedDefaults = async function () {
+    for (const setting of this.DEFAULT_SETTINGS) {
+        const [instance, created] = await this.findOrCreate({
+            where: { key: setting.key },
+            defaults: setting,
+        });
+        if (created) {
+            console.log(`[SystemSettings] Created default: ${setting.key}`);
         }
     }
+};
 
-    /**
-     * Generate a response based on conversation history
-     * @param {Array} messages - Array of { role: 'user'|'assistant', content: string }
-     * @param {Object} leadContext - Additional context about the lead
-     * @param {string} dynamicPrompt - Optional dynamic system prompt from database
-     */
-    async generateResponse(messages, leadContext = {}, dynamicPrompt = null) {
-        if (!this.client) {
-            return {
-                success: false,
-                error: 'OpenAI not configured',
-                fallbackMessage: 'Olá! Um de nossos consultores entrará em contato em breve. 😊',
-            };
-        }
-
-        try {
-            // Use dynamic prompt from database if provided, otherwise use default
-            const basePrompt = dynamicPrompt || this.systemPrompt;
-
-            // Build context-aware system prompt
-            let contextPrompt = basePrompt;
-
-            if (leadContext.name) {
-                contextPrompt += `\n\nInformações do cliente atual:
-- Nome: ${leadContext.name}
-- Telefone: ${leadContext.phone || 'Não informado'}
-- Valor da proposta: ${leadContext.proposal_value ? `R$ ${leadContext.proposal_value}` : 'Não definido'}
-- Tamanho do sistema: ${leadContext.system_size_kwp ? `${leadContext.system_size_kwp} kWp` : 'Não definido'}`;
-            }
-
-            const completion = await this.client.chat.completions.create({
-                model: 'gpt-4o-mini',
-                messages: [
-                    { role: 'system', content: contextPrompt },
-                    ...messages.map(m => ({
-                        role: m.sender === 'user' ? 'user' : 'assistant',
-                        content: m.content,
-                    })),
-                ],
-                max_tokens: 500,
-                temperature: 0.7,
-            });
-
-            const response = completion.choices[0]?.message?.content;
-
-            return {
-                success: true,
-                message: response,
-                usage: completion.usage,
-            };
-        } catch (error) {
-            console.error('[OpenAIService] Error generating response:', error.message);
-            return {
-                success: false,
-                error: error.message,
-                fallbackMessage: 'Desculpe, estou com dificuldades no momento. Um consultor entrará em contato em breve!',
-            };
-        }
-    }
-
-    /**
-     * Extract lead information from a message
-     * @param {string} message - User message
-     */
-    async extractLeadInfo(message) {
-        if (!this.client) {
-            return { success: false, data: {} };
-        }
-
-        try {
-            const completion = await this.client.chat.completions.create({
-                model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `Extraia informações do lead da mensagem. Retorne APENAS um JSON válido com os campos:
-{
-  "name": "nome se mencionado ou null",
-  "monthly_bill": "valor da conta de luz se mencionado ou null",
-  "city": "cidade se mencionada ou null",
-  "state": "estado se mencionado ou null",
-  "installation_type": "residencial, comercial ou rural se mencionado ou null",
-  "interest_financing": true/false/null
-}`,
-                    },
-                    { role: 'user', content: message },
-                ],
-                max_tokens: 200,
-                temperature: 0,
-            });
-
-            const responseText = completion.choices[0]?.message?.content || '{}';
-            const data = JSON.parse(responseText.replace(/```json\n?|\n?```/g, ''));
-
-            return { success: true, data };
-        } catch (error) {
-            console.error('[OpenAIService] Error extracting lead info:', error.message);
-            return { success: false, data: {} };
-        }
-    }
-}
-
-module.exports = new OpenAIService();
+module.exports = SystemSettings;
