@@ -134,21 +134,10 @@ class WebhookController {
         // ... (preserving logic) ...
         console.log(`[Webhook] Processing message from ${phone}: ${messageText}`);
 
-        // --- TEST MODE WHITELIST ---
-        const cleanPhone = phone.replace(/\D/g, '');
-        const allowedNumbers = ['557182862912', '1982862912', '5571982862912'];
-        const isAllowed = allowedNumbers.some(num => cleanPhone.includes(num) || num.includes(cleanPhone));
-
-        if (!isAllowed) {
-            console.log(`[Webhook] IGNORING message from ${phone} (Not in whitelist)`);
-            return;
-        }
-
         // Ensure LID is linked if provided
         if (chatLid && !phone.includes('@lid')) {
             await this.ensureLeadLid(phone, chatLid);
         }
-        // ---------------------------
 
         // Find or create lead
         let lead = await leadService.findByPhone(phone);
