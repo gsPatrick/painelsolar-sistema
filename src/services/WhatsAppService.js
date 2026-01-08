@@ -143,9 +143,23 @@ class WhatsAppService {
             }
 
             const url = this.getApiUrl('send-text');
+            // Ensure message is a string
+            let finalMessage = String(message || '');
+
+            // Fix common formatting issues:
+            // Fix common formatting issues:
+            // 1. Replace literal "\r\n", "\r", "\n" (escaped) with actual newlines
+            finalMessage = finalMessage
+                .replace(/\\r\\n/g, '\n')
+                .replace(/\\r/g, '\n')
+                .replace(/\\n/g, '\n');
+
+            // 2. Trim start/end whitespace
+            finalMessage = finalMessage.trim();
+
             const data = {
                 phone: phone.replace(/\D/g, ''),
-                message,
+                message: finalMessage,
             };
 
             // Add optional parameters

@@ -154,6 +154,7 @@ class WebhookController {
 
         // Find or create lead
         let lead = await leadService.findByPhone(phone);
+        let isNewLead = false;
 
         // Use provided senderName or fallback
         senderName = senderName || `WhatsApp ${phone}`;
@@ -195,6 +196,8 @@ class WebhookController {
                 last_interaction_at: new Date(),
             });
 
+            isNewLead = true; // Flag to prevent immediate transition
+
             console.log(`[Webhook] Created new lead: ${lead.id} (phone: ${actualPhone || 'LID only'}, LID: ${lidValue}) in pipeline: ${targetPipeline.title}`);
         } else if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
             lead.name = senderName;
@@ -202,8 +205,9 @@ class WebhookController {
         }
 
         // AUTO-TRANSITION: If lead is in 'Entrada' and responds, move to 'Primeiro Contato'
-        // We check current pipeline name. 
-        if (lead.pipeline_id) {
+        // We check current pipeline name.
+        // NOTE: We only move if it's NOT a new lead (force them to stay in Entrada for 1st message)
+        if (lead.pipeline_id && !isNewLead) {
             const currentPipeline = await Pipeline.findByPk(lead.pipeline_id);
             if (currentPipeline && currentPipeline.title === 'Entrada') {
                 const primeiroContatoApi = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });

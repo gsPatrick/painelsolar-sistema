@@ -20,6 +20,11 @@ class PipelineService {
                 model: Lead,
                 as: 'leads',
                 order: [['order_index', 'ASC']],
+                include: [{ // Nested include for appointments
+                    model: require('../../models').Appointment,
+                    as: 'appointments',
+                    required: false, // Left join
+                }]
             }],
         });
 
