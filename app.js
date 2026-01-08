@@ -131,24 +131,50 @@ async function createDefaultAdmin() {
 async function createDefaultPipelines() {
     try {
         const defaultPipelines = [
-            { title: 'Primeiro Contato', color: '#4318FF', order_index: 0, is_protected: true },
-            { title: 'Enviar Proposta', color: '#F59E0B', order_index: 1, is_protected: true },
-            { title: 'Proposta Enviada', color: '#10B981', order_index: 2 },
-            { title: 'Negociação', color: '#8B5CF6', order_index: 3 },
-            { title: 'Aguardando Assinatura', color: '#6366F1', order_index: 4 },
-            { title: 'Fechado/Ganho', color: '#22C55E', order_index: 5 },
-            { title: 'Perdido', color: '#EF4444', order_index: 6 },
-            { title: 'Follow-up', color: '#EC4899', order_index: 7, is_protected: true },
+            { title: 'Entrada', color: '#64748B', order_index: 0, sla_limit_days: 1 },
+            { title: 'Primeiro Contato', color: '#3B82F6', order_index: 1, sla_limit_days: 2 },
+            { title: 'Aguardando Proposta', color: '#F59E0B', order_index: 2, sla_limit_days: 3 },
+            { title: 'Proposta Enviada', color: '#8B5CF6', order_index: 3, sla_limit_days: 5 },
+            { title: 'Agendamento', color: '#EC4899', order_index: 4, sla_limit_days: 7 },
+            { title: 'Fechamento', color: '#10B981', order_index: 5, sla_limit_days: 10 },
+            { title: 'Pós-Venda', color: '#6366F1', order_index: 6, sla_limit_days: 30 }
         ];
 
-        for (const pipeline of defaultPipelines) {
-            const existing = await Pipeline.findOne({ where: { title: pipeline.title } });
-            if (!existing) {
-                await Pipeline.create(pipeline);
-                console.log(`✅ Pipeline "${pipeline.title}" criado`);
+        for (const p of defaultPipelines) {
+            const [pipeline, created] = await Pipeline.findOrCreate({
+                where: { title: p.title },
+                defaults: p
+            });
+
+            // Always update properties to ensure consistency
+            if (!created) {
+                pipeline.color = p.color;
+                pipeline.order_index = p.order_index;
+                pipeline.sla_limit_days = p.sla_limit_days;
+                await pipeline.save();
             }
+
+            console.log(`✅ Pipeline "${p.title}" verificado/atualizado`);
         }
-        console.log('ℹ️  Pipelines padrão verificados');
+
+        // REMOVE DEPRECATED PIPELINES
+        const { Op } = require('sequelize');
+        const allowedTitles = defaultPipelines.map(p => p.title);
+
+        // Also keep TEMP_SEGURO if it exists temporarily
+        allowedTitles.push('TEMP_SEGURO');
+
+        const deletedCount = await Pipeline.destroy({
+            where: {
+                title: { [Op.notIn]: allowedTitles }
+            }
+        });
+
+        if (deletedCount > 0) {
+            console.log(`🧹 Removidos ${deletedCount} pipelines obsoletos`);
+        }
+
+        console.log('ℹ️  Pipelines padrão verificados e sincronizados');
     } catch (error) {
         console.error('⚠️  Error creating default pipelines:', error.message);
     }
