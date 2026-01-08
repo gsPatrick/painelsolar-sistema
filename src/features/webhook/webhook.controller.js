@@ -603,12 +603,76 @@ class WebhookController {
     }
 
     /**
+     * POST /webhook/meta/preview
+     * List leads available for sync without importing
+     */
+    async previewMetaLeads(req, res) {
+        try {
+            const { page_id, form_id, limit = 100 } = req.body;
+            const metaService = require('../../services/MetaService');
+
+            if (!metaService.isConfigured()) {
+                return res.status(400).json({ error: 'Meta API não configurada' });
+            }
+
+            let rawLeads = [];
+            if (form_id) {
+                rawLeads = await metaService.getFormLeads(form_id, limit);
+            } else if (page_id) {
+                rawLeads = await metaService.getAllPageLeads(page_id, limit);
+            } else {
+                return res.status(400).json({ error: 'Informe page_id ou form_id' });
+            }
+
+            const leadsByDate = {};
+            const totalStats = { found: rawLeads.length, new: 0, exists: 0 };
+
+            // Sort leads by date desc
+            rawLeads.sort((a, b) => new Date(b.created_time) - new Date(a.created_time));
+
+            for (const rawLead of rawLeads) {
+                const leadgenId = rawLead.id;
+                const createdDate = new Date(rawLead.created_time).toISOString().split('T')[0];
+
+                // Check existence
+                const existing = await Lead.findOne({ where: { meta_leadgen_id: leadgenId } });
+                const status = existing ? 'exists' : 'new';
+
+                if (status === 'new') totalStats.new++;
+                else totalStats.exists++;
+
+                if (!leadsByDate[createdDate]) {
+                    leadsByDate[createdDate] = [];
+                }
+
+                leadsByDate[createdDate].push({
+                    id: leadgenId,
+                    created_time: rawLead.created_time,
+                    status: status,
+                    ad_id: rawLead.ad_id
+                    // We don't fetch name/phone here to be fast
+                });
+            }
+
+            res.json({
+                status: 'success',
+                stats: totalStats,
+                grouped_leads: leadsByDate
+            });
+
+        } catch (error) {
+            console.error('[Preview] Error:', error);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    /**
      * POST /webhook/meta/sync
      * Manually sync/import leads from Meta (backfill) - USES MESSAGE QUEUE
      */
     async syncMetaLeads(req, res) {
         try {
-            const { page_id, form_id, limit = 100 } = req.body;
+            const { page_id, form_id, limit = 100, selected_ids } = req.body;
             const metaService = require('../../services/MetaService');
             const messageQueue = require('../../services/MessageQueueService');
 
@@ -633,7 +697,13 @@ class WebhookController {
                 });
             }
 
-            console.log(`[Sync] 📋 ${rawLeads.length} leads encontrados no Meta`);
+            // Filter by selected_ids if provided
+            if (selected_ids && Array.isArray(selected_ids) && selected_ids.length > 0) {
+                console.log(`[Sync] 🎯 Filtrando por ${selected_ids.length} IDs selecionados`);
+                rawLeads = rawLeads.filter(lead => selected_ids.includes(lead.id));
+            }
+
+            console.log(`[Sync] 📋 ${rawLeads.length} leads para processar`);
 
             let imported_count = 0;
             let skipped_count = 0;

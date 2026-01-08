@@ -8,8 +8,10 @@ const router = express.Router();
 router.post('/z-api', (req, res) => webhookController.handleZApiWebhook(req, res));
 
 // Meta (Facebook) webhooks
+// Meta (Facebook) webhooks
 router.get('/meta', (req, res) => webhookController.verifyMetaWebhook(req, res));
 router.post('/meta', (req, res) => webhookController.handleMetaWebhook(req, res));
+router.post('/meta/preview', (req, res) => webhookController.previewMetaLeads(req, res));
 router.post('/meta/sync', (req, res) => webhookController.syncMetaLeads(req, res));
 
 // WhatsApp status check
