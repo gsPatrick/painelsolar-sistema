@@ -340,8 +340,11 @@ class WebhookController {
             await whatsAppService.sendMessage(phone, responseText, typingDelaySec);
             console.log(`[Webhook] AI response sent to ${phone}`);
 
-            // Send video if tag was present
-            if (shouldSendVideo) {
+            // Send video if tag was present AND not already sent
+            // We use meta_campaign_data to store this flag without changing schema
+            const campaignData = lead.meta_campaign_data || {};
+
+            if (shouldSendVideo && !campaignData.social_proof_video_sent) {
                 const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
                 if (videoUrl) {
                     await whatsAppService.sendVideo(
@@ -351,9 +354,18 @@ class WebhookController {
                         { delayTyping: 2 }
                     );
                     console.log(`[Webhook] Social proof video sent to ${phone}`);
+
+                    // Mark as sent
+                    campaignData.social_proof_video_sent = true;
+                    lead.meta_campaign_data = campaignData;
+                    // Force update for JSONB changes
+                    lead.changed('meta_campaign_data', true);
+                    await lead.save();
                 } else {
                     console.warn('[Webhook] PROVA_SOCIAL_VIDEO_URL not configured. Video not sent.');
                 }
+            } else if (shouldSendVideo && campaignData.social_proof_video_sent) {
+                console.log(`[Webhook] Video already sent to ${phone}, skipping duplicate.`);
             }
         } else if (aiResponse.fallbackMessage) {
             // Send fallback message
@@ -584,10 +596,23 @@ class WebhookController {
                     console.log(`[Meta] ✅ Sol respondeu Meta lead: ${lead.phone}`);
 
                     // Video in background (if needed)
-                    if (shouldSendVideo) {
+                    // We use meta_campaign_data to store this flag
+                    const campaignData = lead.meta_campaign_data || {};
+
+                    if (shouldSendVideo && !campaignData.social_proof_video_sent) {
                         const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
                         if (videoUrl) {
                             whatsAppService.sendVideo(lead.phone, videoUrl, '👆 Confira o depoimento!', { delayTyping: 2 })
+                                .then(async () => {
+                                    console.log(`[Meta] Video sent to ${lead.phone}`);
+                                    // Reload lead to ensure we don't overwrite concurrent changes
+                                    await lead.reload();
+                                    const currentData = lead.meta_campaign_data || {};
+                                    currentData.social_proof_video_sent = true;
+                                    lead.meta_campaign_data = currentData;
+                                    lead.changed('meta_campaign_data', true);
+                                    await lead.save();
+                                })
                                 .catch(e => console.warn('[Meta] Video send error:', e.message));
                         }
                     }
