@@ -35,11 +35,26 @@ async function main() {
 
         // STEP 2: Get Pages
         console.log('📋 PASSO 2: Buscando páginas...');
-        const pagesResponse = await axios.get(`${BASE_URL}/me/accounts`, {
-            params: { access_token: ACCESS_TOKEN, fields: 'id,name,access_token' }
-        });
+        let pages = [];
+        try {
+            const pagesResponse = await axios.get(`${BASE_URL}/me/accounts`, {
+                params: { access_token: ACCESS_TOKEN, fields: 'id,name,access_token' }
+            });
+            pages = pagesResponse.data.data || [];
+        } catch (accountError) {
+            // Check if error is because we are using a Page Token (which doesn't have 'accounts')
+            if (accountError.response?.data?.error?.code === 100) {
+                console.log('   ⚠️ Token parece ser de PÁGINA (não de usuário). Usando a própria página.');
+                pages = [{
+                    id: meResponse.data.id,
+                    name: meResponse.data.name,
+                    access_token: ACCESS_TOKEN
+                }];
+            } else {
+                throw accountError;
+            }
+        }
 
-        const pages = pagesResponse.data.data || [];
         console.log(`   ✅ ${pages.length} página(s) encontrada(s)\n`);
 
         if (pages.length === 0) {
