@@ -36,7 +36,6 @@ const Lead = sequelize.define('Lead', {
     meta_leadgen_id: {
         type: DataTypes.STRING(100),
         allowNull: true,
-        unique: true,
         comment: 'Facebook leadgen ID for deduplication',
     },
     is_important: {
