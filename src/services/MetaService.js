@@ -128,6 +128,69 @@ class MetaService {
     }
 
     /**
+     * List all leadgen forms for a page
+     */
+    async getPageForms(pageId) {
+        try {
+            const response = await axios.get(`${this.baseUrl}/${pageId}/leadgen_forms`, {
+                params: {
+                    access_token: this.accessToken,
+                    fields: 'id,name,status,leads_count',
+                },
+            });
+            return response.data.data || [];
+        } catch (error) {
+            console.error('[MetaService] Error fetching page forms:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * List leads from a specific form (for backfill sync)
+     * @param {string} formId - The form ID
+     * @param {number} limit - Max leads to fetch (default 100)
+     */
+    async getFormLeads(formId, limit = 100) {
+        try {
+            const response = await axios.get(`${this.baseUrl}/${formId}/leads`, {
+                params: {
+                    access_token: this.accessToken,
+                    fields: 'id,created_time,field_data,ad_id',
+                    limit,
+                },
+            });
+            return response.data.data || [];
+        } catch (error) {
+            console.error('[MetaService] Error fetching form leads:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Get all leads from the page (via all forms)
+     * Used for backfill sync
+     */
+    async getAllPageLeads(pageId, limit = 100) {
+        const forms = await this.getPageForms(pageId);
+        const allLeads = [];
+
+        for (const form of forms) {
+            try {
+                const leads = await this.getFormLeads(form.id, limit);
+                for (const lead of leads) {
+                    lead.form_id = form.id;
+                    lead.form_name = form.name;
+                    allLeads.push(lead);
+                }
+            } catch (err) {
+                console.warn(`[MetaService] Could not fetch leads from form ${form.id}:`, err.message);
+            }
+        }
+
+        return allLeads;
+    }
+
+    /**
      * Parse field_data array into object
      * Converts [{ name: "full_name", values: ["João"] }] to { full_name: "João" }
      */

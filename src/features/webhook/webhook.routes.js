@@ -10,6 +10,7 @@ router.post('/z-api', (req, res) => webhookController.handleZApiWebhook(req, res
 // Meta (Facebook) webhooks
 router.get('/meta', (req, res) => webhookController.verifyMetaWebhook(req, res));
 router.post('/meta', (req, res) => webhookController.handleMetaWebhook(req, res));
+router.post('/meta/sync', (req, res) => webhookController.syncMetaLeads(req, res));
 
 // WhatsApp status check
 router.get('/status', async (req, res) => {

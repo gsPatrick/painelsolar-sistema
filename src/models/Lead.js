@@ -33,6 +33,12 @@ const Lead = sequelize.define('Lead', {
         type: DataTypes.JSONB,
         defaultValue: {},
     },
+    meta_leadgen_id: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        unique: true,
+        comment: 'Facebook leadgen ID for deduplication',
+    },
     is_important: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

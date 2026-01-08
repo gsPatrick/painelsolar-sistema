@@ -483,6 +483,7 @@ class WebhookController {
                 phone: completeLeadData.phone || '',
                 source: 'meta_ads',
                 meta_campaign_data: completeLeadData.meta_campaign_data || {},
+                meta_leadgen_id: completeLeadData.leadgen_id,
                 pipeline_id: targetPipeline?.id || null,
                 last_interaction_at: new Date(),
             });
@@ -578,6 +579,110 @@ class WebhookController {
             }
         } catch (err) {
             console.error('[Webhook] Error linking LID:', err.message);
+        }
+    }
+
+    /**
+     * POST /webhook/meta/sync
+     * Manually sync/import leads from Meta (backfill)
+     */
+    async syncMetaLeads(req, res) {
+        try {
+            const { page_id, form_id, limit = 100 } = req.body;
+            const metaService = require('../../services/MetaService');
+
+            if (!metaService.isConfigured()) {
+                return res.status(400).json({
+                    error: 'Meta API não configurada. Configure META_PAGE_ACCESS_TOKEN no .env'
+                });
+            }
+
+            console.log('[Webhook] Starting Meta leads sync...');
+
+            let rawLeads = [];
+
+            if (form_id) {
+                // Sync from specific form
+                rawLeads = await metaService.getFormLeads(form_id, limit);
+            } else if (page_id) {
+                // Sync from all forms of a page
+                rawLeads = await metaService.getAllPageLeads(page_id, limit);
+            } else {
+                return res.status(400).json({
+                    error: 'Informe page_id ou form_id'
+                });
+            }
+
+            console.log(`[Webhook] Found ${rawLeads.length} leads to process`);
+
+            let imported_count = 0;
+            let skipped_count = 0;
+            const errors = [];
+
+            for (const rawLead of rawLeads) {
+                try {
+                    const leadgenId = rawLead.id;
+
+                    // Check if lead already exists by leadgen_id
+                    const existingByLeadgen = await Lead.findOne({
+                        where: { meta_leadgen_id: leadgenId }
+                    });
+
+                    if (existingByLeadgen) {
+                        skipped_count++;
+                        continue;
+                    }
+
+                    // Get complete lead data with campaign info
+                    const completeData = await metaService.getCompleteLeadData(leadgenId, rawLead.ad_id);
+
+                    // Check if lead exists by phone
+                    if (completeData.phone) {
+                        const existingByPhone = await leadService.findByPhone(completeData.phone);
+                        if (existingByPhone) {
+                            // Update existing with meta data
+                            existingByPhone.meta_leadgen_id = leadgenId;
+                            existingByPhone.meta_campaign_data = completeData.meta_campaign_data;
+                            if (!existingByPhone.source || existingByPhone.source === 'manual') {
+                                existingByPhone.source = 'meta_ads';
+                            }
+                            await existingByPhone.save();
+                            skipped_count++;
+                            continue;
+                        }
+                    }
+
+                    // Process as new lead (reuse webhook logic)
+                    await this.processMetaLead({
+                        leadgen_id: leadgenId,
+                        ad_id: rawLead.ad_id,
+                        form_id: rawLead.form_id,
+                    });
+
+                    imported_count++;
+
+                } catch (err) {
+                    console.error(`[Webhook] Error processing lead ${rawLead.id}:`, err.message);
+                    errors.push({ id: rawLead.id, error: err.message });
+                }
+            }
+
+            console.log(`[Webhook] Sync complete: ${imported_count} imported, ${skipped_count} skipped`);
+
+            res.json({
+                status: 'success',
+                imported_count,
+                skipped_count,
+                total_found: rawLeads.length,
+                errors: errors.length > 0 ? errors : undefined,
+            });
+
+        } catch (error) {
+            console.error('[Webhook] Error syncing Meta leads:', error.message);
+            res.status(500).json({
+                error: 'Erro ao sincronizar leads do Meta',
+                details: error.message
+            });
         }
     }
 }
