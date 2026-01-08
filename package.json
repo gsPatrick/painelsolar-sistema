@@ -4,8 +4,8 @@
   "description": "API completa para CRM de Energia Solar com Kanban, IA e WhatsApp",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "node --watch app.js",
+    "start": "npm run db:sync && node app.js",
+    "dev": "npm run db:sync && node --watch app.js",
     "db:sync": "node scripts/syncDatabase.js"
   },
   "keywords": [

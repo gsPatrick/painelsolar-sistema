@@ -17,6 +17,14 @@ const taskService = require('./src/features/task/task.service');
 const leadService = require('./src/features/lead/lead.service');
 const whatsAppService = require('./src/services/WhatsAppService');
 
+// Check Meta Config
+const metaToken = process.env.META_PAGE_ACCESS_TOKEN;
+if (!metaToken) {
+    console.warn('⚠️  AVISO: META_PAGE_ACCESS_TOKEN não configurado no .env. A integração com Facebook/Instagram não funcionará.');
+} else {
+    console.log('✅ Meta API Configurada (Token detectado)');
+}
+
 const app = express();
 const server = http.createServer(app);
 
