@@ -420,104 +420,78 @@ class WebhookController {
     }
 
     /**
-     * Process Meta Lead Ads lead with full Graph API data retrieval
+     * Process Meta Lead Ads lead - OPTIMIZED FOR SPEED
+     * Priority: Dispatch AI immediately, enrich campaign data in background
      */
     async processMetaLead(leadData) {
-        console.log('[Webhook] Processing Meta lead:', leadData);
-
-        // Import MetaService here to avoid circular dependencies
         const metaService = require('../../services/MetaService');
-
         const { leadgen_id, ad_id, form_id, page_id } = leadData;
 
-        let completeLeadData;
+        console.log('\n🚀🚀🚀 LEAD META DETECTADO - PROCESSAMENTO PRIORITÁRIO! 🚀🚀🚀');
+        console.log(`[Meta] leadgen_id: ${leadgen_id}`);
+
+        // STEP 1: Quick fetch - only get basic lead info (name + phone)
+        let leadBasicData = { name: 'Meta Lead', phone: null };
 
         try {
-            // Fetch complete lead data with campaign metadata from Graph API
             if (metaService.isConfigured()) {
-                completeLeadData = await metaService.getCompleteLeadData(leadgen_id, ad_id);
-                console.log('[Webhook] Complete Meta lead data:', JSON.stringify(completeLeadData, null, 2));
-            } else {
-                console.warn('[Webhook] MetaService not configured. Using basic lead data.');
-                completeLeadData = {
-                    leadgen_id,
-                    name: 'Meta Lead',
-                    phone: null,
-                    meta_campaign_data: { form_id, page_id, ad_id },
-                };
+                const rawLeadData = await metaService.getLeadData(leadgen_id);
+                const fields = metaService.parseFieldData(rawLeadData.field_data || []);
+                leadBasicData.name = fields.name || 'Meta Lead';
+                leadBasicData.phone = fields.phone || null;
+                console.log(`[Meta] ⚡ Dados básicos obtidos: ${leadBasicData.name} - ${leadBasicData.phone}`);
             }
-        } catch (error) {
-            console.error('[Webhook] Error fetching complete lead data from Meta:', error.message);
-            completeLeadData = {
-                leadgen_id,
-                name: 'Meta Lead',
-                phone: null,
-                meta_campaign_data: { form_id, page_id, ad_id, error: error.message },
-            };
+        } catch (err) {
+            console.warn('[Meta] Erro ao buscar dados básicos:', err.message);
         }
 
-        // Find "Primeiro Contato" pipeline
-        let targetPipeline = await Pipeline.findOne({
-            where: { title: 'Primeiro Contato' }
-        });
-
+        // STEP 2: Find pipeline
+        let targetPipeline = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
         if (!targetPipeline) {
-            targetPipeline = await Pipeline.findOne({
-                order: [['order_index', 'ASC']],
-            });
+            targetPipeline = await Pipeline.findOne({ order: [['order_index', 'ASC']] });
         }
 
-        // Check if lead already exists by phone
+        // STEP 3: Check if lead exists or create new one
         let lead = null;
-        if (completeLeadData.phone) {
-            lead = await leadService.findByPhone(completeLeadData.phone);
+        if (leadBasicData.phone) {
+            lead = await leadService.findByPhone(leadBasicData.phone);
         }
 
         if (lead) {
-            // Update existing lead with Meta campaign data
-            lead.meta_campaign_data = {
-                ...lead.meta_campaign_data,
-                ...completeLeadData.meta_campaign_data,
-            };
             lead.last_interaction_at = new Date();
             await lead.save();
-            console.log(`[Webhook] Updated existing lead: ${lead.id} with Meta data`);
+            console.log(`[Meta] Lead existente atualizado: ${lead.id}`);
         } else {
-            // Create new lead with Meta campaign data
             lead = await Lead.create({
-                name: completeLeadData.name || 'Meta Lead',
-                phone: completeLeadData.phone || '',
+                name: leadBasicData.name,
+                phone: leadBasicData.phone || '',
                 source: 'meta_ads',
-                meta_campaign_data: completeLeadData.meta_campaign_data || {},
-                meta_leadgen_id: completeLeadData.leadgen_id,
+                meta_leadgen_id: leadgen_id,
                 pipeline_id: targetPipeline?.id || null,
                 last_interaction_at: new Date(),
             });
-            console.log(`[Webhook] Created Meta lead: ${lead.id} (${lead.name})`);
+            console.log(`🚀 LEAD META DETECTADO: ${lead.name} - Disparando Sol AGORA!`);
         }
 
-        // TRIGGER AI DANIELA GREETING 🎯
-        // Send welcome message immediately via WhatsApp if phone is available
+        // STEP 4: 🎯 DISPATCH AI IMMEDIATELY - ZERO DELAY
         if (lead.phone) {
+            console.log(`[Meta] 🔥 Disparando IA Sol para ${lead.phone}...`);
+
             try {
-                // Get Daniela's opening message
-                const recentMessages = []; // No previous messages for new lead
-                const aiResponse = await openAIService.generateResponse(recentMessages, {
+                const aiResponse = await openAIService.generateResponse([], {
                     name: lead.name,
                     phone: lead.phone,
                 });
 
                 if (aiResponse.success && aiResponse.message) {
                     let responseText = aiResponse.message;
-                    let shouldSendVideo = false;
+                    let shouldSendVideo = responseText.includes('[ENVIAR_VIDEO_PROVA_SOCIAL]');
 
-                    // Check for video tag
-                    if (responseText.includes('[ENVIAR_VIDEO_PROVA_SOCIAL]')) {
-                        shouldSendVideo = true;
+                    if (shouldSendVideo) {
                         responseText = responseText.replace('[ENVIAR_VIDEO_PROVA_SOCIAL]', '').trim();
                     }
 
-                    // Save AI message to history
+                    // Save message
                     await Message.create({
                         lead_id: lead.id,
                         content: responseText,
@@ -525,31 +499,71 @@ class WebhookController {
                         timestamp: new Date(),
                     });
 
-                    // Send via WhatsApp with typing delay for human-like feel
-                    await whatsAppService.sendMessage(lead.phone, responseText, 3);
-                    console.log(`[Webhook] AI Daniela greeting sent to Meta lead: ${lead.phone}`);
+                    // Send via WhatsApp - minimal delay
+                    await whatsAppService.sendMessage(lead.phone, responseText, 2);
+                    console.log(`[Meta] ✅ Sol respondeu Meta lead: ${lead.phone}`);
 
-                    // Send video if tag was present
+                    // Video in background (if needed)
                     if (shouldSendVideo) {
                         const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
                         if (videoUrl) {
-                            await whatsAppService.sendVideo(
-                                lead.phone,
-                                videoUrl,
-                                '👆 Confira o depoimento de um dos nossos clientes!',
-                                { delayTyping: 2 }
-                            );
-                            console.log(`[Webhook] Social proof video sent to ${lead.phone}`);
+                            whatsAppService.sendVideo(lead.phone, videoUrl, '👆 Confira o depoimento!', { delayTyping: 2 })
+                                .catch(e => console.warn('[Meta] Video send error:', e.message));
                         }
                     }
                 }
             } catch (error) {
-                console.error('[Webhook] Error sending AI greeting to Meta lead:', error.message);
-                // Don't fail the whole process if greeting fails
+                console.error('[Meta] ❌ Erro ao enviar saudação:', error.message);
             }
+        } else {
+            console.warn('[Meta] ⚠️ Sem telefone - não foi possível disparar IA');
         }
 
+        // STEP 5: BACKGROUND - Enrich with campaign data (non-blocking)
+        this.enrichMetaLeadCampaignData(lead, leadgen_id, ad_id).catch(err => {
+            console.warn('[Meta] Background enrichment failed:', err.message);
+        });
+
         return lead;
+    }
+
+    /**
+     * Background enrichment of campaign data (non-blocking)
+     */
+    async enrichMetaLeadCampaignData(lead, leadgen_id, ad_id) {
+        const metaService = require('../../services/MetaService');
+
+        if (!metaService.isConfigured() || !ad_id) return;
+
+        try {
+            console.log(`[Meta] 📊 Buscando dados de campanha em background para lead ${lead.id}...`);
+
+            const adData = await metaService.getAdData(ad_id);
+            const campaignData = {};
+
+            if (adData.campaign_id) {
+                const campaign = await metaService.getCampaignData(adData.campaign_id);
+                campaignData.campaign_name = campaign.name;
+                campaignData.campaign_id = adData.campaign_id;
+            }
+
+            if (adData.adset_id) {
+                const adset = await metaService.getAdSetData(adData.adset_id);
+                campaignData.adset_name = adset.name;
+                campaignData.adset_id = adData.adset_id;
+            }
+
+            campaignData.ad_name = adData.name;
+            campaignData.ad_id = ad_id;
+
+            // Update lead with campaign data
+            lead.meta_campaign_data = campaignData;
+            await lead.save();
+
+            console.log(`[Meta] ✅ Dados de campanha salvos: ${campaignData.campaign_name || 'N/A'}`);
+        } catch (error) {
+            console.warn('[Meta] Erro no enriquecimento de campanha:', error.message);
+        }
     }
 
     /**
