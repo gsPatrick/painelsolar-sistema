@@ -168,15 +168,21 @@ class WebhookController {
                 });
             }
 
+            // Handle LID-only phone numbers
+            const isLidOnly = phone.includes('@lid');
+            const actualPhone = isLidOnly ? '' : phone; // Leave empty if only LID
+            const lidValue = isLidOnly ? phone : (chatLid || null);
+
             lead = await Lead.create({
                 name: senderName, // Use extracted name or fallback
-                phone,
+                phone: actualPhone,
+                whatsapp_lid: lidValue,
                 source: 'whatsapp',
                 pipeline_id: targetPipeline.id,
                 last_interaction_at: new Date(),
             });
 
-            console.log(`[Webhook] Created new lead: ${lead.id} in pipeline: ${targetPipeline.title}`);
+            console.log(`[Webhook] Created new lead: ${lead.id} (phone: ${actualPhone || 'LID only'}, LID: ${lidValue}) in pipeline: ${targetPipeline.title}`);
         } else if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
             // Update name if we have a better one now
             lead.name = senderName;
