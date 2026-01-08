@@ -147,7 +147,7 @@ async function main() {
                             // Log lead details
                             const name = parsedLead.fields.full_name || parsedLead.fields.nome || parsedLead.fields.name || 'N/A';
                             const phone = parsedLead.fields.phone_number || parsedLead.fields.telefone || parsedLead.fields.phone || 'N/A';
-                            console.log(`         → ${name} | ${phone} | ${lead.created_time}`);
+                            console.log(`         → ${name} | ${phone} | ${lead.created_time} | Form: ${form.name}`);
                         }
 
                     } catch (leadsError) {
