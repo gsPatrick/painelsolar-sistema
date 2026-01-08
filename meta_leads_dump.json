@@ -1,0 +1,1676 @@
+{
+  "timestamp": "2026-01-08T02:43:15.047Z",
+  "user": {
+    "id": "2378074536038981",
+    "name": "Carlos Zidene"
+  },
+  "pages": [
+    {
+      "id": "534745156397254",
+      "name": "DGE Energia Alternativa",
+      "forms": [
+        {
+          "id": "858773249824871",
+          "name": "Leads-",
+          "status": "ACTIVE",
+          "leads_count": 16,
+          "leads": [
+            {
+              "id": "2418178155265266",
+              "created_time": "2025-12-06T20:45:28+0000",
+              "ad_id": "120235589668570660",
+              "fields": {
+                "nome_completo": "Marlos Angelim",
+                "telefone": "+5585987688626",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento"
+              }
+            },
+            {
+              "id": "1590337668543893",
+              "created_time": "2025-12-06T14:58:28+0000",
+              "ad_id": "120235589668570660",
+              "fields": {
+                "telefone": "+557186998526",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Fernanda Gil"
+              }
+            },
+            {
+              "id": "673998768981393",
+              "created_time": "2025-12-05T23:56:48+0000",
+              "ad_id": "120235589668580660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "nome_completo": "DiegoSantos",
+                "telefone": "+5571987724776"
+              }
+            },
+            {
+              "id": "2215567392283553",
+              "created_time": "2025-11-21T13:43:00+0000",
+              "ad_id": "120235589668580660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Lamarque de Melo Oliveira",
+                "telefone": "+5588992914685"
+              }
+            },
+            {
+              "id": "2372821739803180",
+              "created_time": "2025-11-20T16:14:28+0000",
+              "ad_id": "120235589668570660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "nome_completo": "Arrais",
+                "telefone": "+5585997844431"
+              }
+            },
+            {
+              "id": "1356975045961076",
+              "created_time": "2025-11-19T23:05:18+0000",
+              "ad_id": "120235589668580660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "nome_completo": "Eliana Freitas",
+                "telefone": "+5571981312421"
+              }
+            },
+            {
+              "id": "1992199621625590",
+              "created_time": "2025-11-19T20:39:52+0000",
+              "ad_id": "120235589684460660",
+              "fields": {
+                "nome_completo": "Allan Paz",
+                "telefone": "+5585987268647",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento"
+              }
+            },
+            {
+              "id": "1334101101214179",
+              "created_time": "2025-11-16T00:36:45+0000",
+              "ad_id": "120235362297660660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "nome_completo": "Suelando Silva",
+                "telefone": "+5571988030347"
+              }
+            },
+            {
+              "id": "1499363191292985",
+              "created_time": "2025-11-14T23:41:30+0000",
+              "ad_id": "120235156498760660",
+              "fields": {
+                "telefone": "+557191245272",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Adailson Bispo Bastos"
+              }
+            },
+            {
+              "id": "717016667569095",
+              "created_time": "2025-11-14T23:28:19+0000",
+              "ad_id": "120234488466800660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Sergio Miranda Vinhas",
+                "telefone": "+5585988798208"
+              }
+            },
+            {
+              "id": "2047199796052319",
+              "created_time": "2025-11-14T23:12:38+0000",
+              "ad_id": "120235156498760660",
+              "fields": {
+                "nome_completo": "Loise Gomes",
+                "telefone": "+557591643229",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_601_a_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento"
+              }
+            },
+            {
+              "id": "1920970871788529",
+              "created_time": "2025-11-14T22:36:21+0000",
+              "ad_id": "120234488466800660",
+              "fields": {
+                "nome_completo": "Amalia Maia",
+                "telefone": "+5571999745004",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos"
+              }
+            },
+            {
+              "id": "830004863536403",
+              "created_time": "2025-11-13T16:07:54+0000",
+              "ad_id": "120235156498760660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Elói Evangelista Santos",
+                "telefone": "(71) 99144-8574"
+              }
+            },
+            {
+              "id": "4155752621352236",
+              "created_time": "2025-11-13T11:34:36+0000",
+              "ad_id": "120235156498760660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Cláudio Luiz Bahiense Borges",
+                "telefone": "+5571991190823"
+              }
+            },
+            {
+              "id": "678459628421320",
+              "created_time": "2025-11-13T09:50:49+0000",
+              "ad_id": "120235156498780660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_500_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_agendar_uma_visita_técnica",
+                "nome_completo": "RAMON Matos",
+                "telefone": "+5571985430134"
+              }
+            },
+            {
+              "id": "804026992409105",
+              "created_time": "2025-11-12T19:25:10+0000",
+              "ad_id": "120235156498760660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_601_a_r$_700",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "nome_completo": "Beatriz Gonçalves",
+                "telefone": "+5585997930648"
+              }
+            }
+          ]
+        },
+        {
+          "id": "800341236251423",
+          "name": "FORMS VAREJO DGE SOLAR",
+          "status": "ACTIVE",
+          "leads_count": 256,
+          "leads": [
+            {
+              "id": "1835825400408125",
+              "created_time": "2026-01-08T02:15:09+0000",
+              "ad_id": "120241075890130740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Ari Oliveira",
+                "telefone": "+5571999146247",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "3393357317478916",
+              "created_time": "2026-01-07T23:09:06+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Lucio Azevedo",
+                "telefone": "+5571993864906",
+                "cidade": "Lauro de Freitas",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "854845880515198",
+              "created_time": "2026-01-07T22:08:30+0000",
+              "ad_id": "120241075890130740",
+              "fields": {
+                "nome_completo": "Lorena Senna",
+                "telefone": "+5571987734017",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "882932214691736",
+              "created_time": "2026-01-07T21:41:07+0000",
+              "ad_id": "120241075890130740",
+              "fields": {
+                "nome_completo": "Darllan Cavalcante",
+                "telefone": "+5575983047287",
+                "cidade": "Coração de Maria",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1520689175888775",
+              "created_time": "2026-01-07T12:23:51+0000",
+              "ad_id": "120241075890130740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Bruno Araújo",
+                "telefone": "+5571981497227",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "4611699019157346",
+              "created_time": "2026-01-07T01:42:22+0000",
+              "ad_id": "120241075473050740",
+              "fields": {
+                "nome_completo": "Del Santos",
+                "telefone": "+5575981664823",
+                "cidade": "Cruz das Almas",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1661363901498300",
+              "created_time": "2026-01-07T01:30:06+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Claudio Mascarenhas",
+                "telefone": "+5571991367077",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1392414942548865",
+              "created_time": "2026-01-06T21:06:19+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Aderlan Capinam",
+                "telefone": "+5571992409917",
+                "cidade": "Santo Estevão Ba"
+              }
+            },
+            {
+              "id": "1390750912785574",
+              "created_time": "2026-01-06T20:40:08+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Carleson Oliveira Nascimento",
+                "telefone": "+5571992838315",
+                "cidade": "Lauro De Freitas",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "738443378950496",
+              "created_time": "2026-01-06T18:38:41+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Jossidalva Araujo Souza",
+                "telefone": "+5573988047252",
+                "cidade": "Jequié"
+              }
+            },
+            {
+              "id": "25573740748905307",
+              "created_time": "2026-01-06T18:28:17+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Joao Antonio Castro",
+                "telefone": "+5571987415642",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "760300420441089",
+              "created_time": "2026-01-06T12:18:12+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Arthur Santos",
+                "telefone": "+5579988038542",
+                "cidade": "SimÃo Dias"
+              }
+            },
+            {
+              "id": "1365917551397695",
+              "created_time": "2026-01-06T12:15:29+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Thadeu Santana | Advogado",
+                "telefone": "+5571982003942",
+                "cidade": "Vitória Da Conquista",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "909875554850712",
+              "created_time": "2026-01-06T10:51:12+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "nome_completo": "Isabela resende",
+                "telefone": "73982416645",
+                "cidade": "JequiÉ",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1215538916572346",
+              "created_time": "2026-01-06T09:48:21+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "nome_completo": "Ivania",
+                "telefone": "+557581310743",
+                "cidade": "Feira de Santana",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1708110990594610",
+              "created_time": "2026-01-06T04:32:45+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Luiz Joao Lucas Magalhaes",
+                "telefone": "+5575991912173",
+                "cidade": "Feira de Santana",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1207467918238053",
+              "created_time": "2026-01-06T02:31:33+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Dra. Andréa Matos",
+                "telefone": "+5571981686510",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "714267578192908",
+              "created_time": "2026-01-06T01:36:56+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Andrea Cirne",
+                "telefone": "+5571991527624",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1614724112937003",
+              "created_time": "2026-01-05T19:00:16+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Neto Matos",
+                "telefone": "+5571987783381",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1992782611627492",
+              "created_time": "2026-01-05T18:53:08+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Marluce de Campos",
+                "telefone": "+5571986428681",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1409586980750551",
+              "created_time": "2026-01-05T17:57:54+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "nome_completo": "EDEN",
+                "telefone": "73999058777",
+                "cidade": "Coroa vermelha",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1281236724028769",
+              "created_time": "2026-01-05T17:42:41+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Maria",
+                "telefone": "+5571981534525",
+                "cidade": "Salvador ba"
+              }
+            },
+            {
+              "id": "772037165905450",
+              "created_time": "2026-01-05T17:13:05+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Thaise Rocha",
+                "telefone": "+5573998714654",
+                "cidade": "Eunápolis"
+              }
+            },
+            {
+              "id": "708521718796378",
+              "created_time": "2026-01-04T01:36:44+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "telefone": "+557197047918",
+                "cidade": "Lauro de Freitas",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Tatiane Pereira Cardoso"
+              }
+            },
+            {
+              "id": "876391531430453",
+              "created_time": "2026-01-03T19:01:16+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "nome_completo": "Leondes Neto",
+                "telefone": "+5571988073754",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "32960470646933136",
+              "created_time": "2026-01-03T18:49:22+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Jéssica Medeiros",
+                "telefone": "+5571992750339",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1945636532966627",
+              "created_time": "2026-01-03T17:59:56+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Clovis Ribeiro",
+                "telefone": "+5561981386345",
+                "cidade": "Gama",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "777356625368789",
+              "created_time": "2026-01-03T17:53:59+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "uilton pinto de Carvalho",
+                "telefone": "+5574981487519",
+                "cidade": "Jacobina Bahia"
+              }
+            },
+            {
+              "id": "1305560391327541",
+              "created_time": "2026-01-03T15:43:20+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Kelly Muniz Ferreira",
+                "telefone": "+5571987348570",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "24741824368824345",
+              "created_time": "2026-01-03T15:06:45+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Vinicius Oliveira",
+                "telefone": "+5571993621456",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1774734829866075",
+              "created_time": "2026-01-03T12:35:07+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "nome_completo": "Antonio Júnior",
+                "telefone": "+5571999775655",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "843904725114948",
+              "created_time": "2026-01-03T10:25:06+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Alexsandro Paixao Qra Condera",
+                "telefone": "+5571982768039",
+                "cidade": "Simões Filho"
+              }
+            },
+            {
+              "id": "1384601889706275",
+              "created_time": "2026-01-03T09:01:43+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Bianca Queiroz Rocha",
+                "telefone": "+5571988211816",
+                "cidade": "Lauro De Freitas"
+              }
+            },
+            {
+              "id": "1631302088230970",
+              "created_time": "2026-01-03T04:38:09+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Joselito e adriana",
+                "telefone": "+5571986107834",
+                "cidade": "Camaçari"
+              }
+            },
+            {
+              "id": "736677052810027",
+              "created_time": "2026-01-03T04:09:44+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Airton Cunha",
+                "telefone": "+557193159358",
+                "cidade": "Simões Filho"
+              }
+            },
+            {
+              "id": "900662059069613",
+              "created_time": "2026-01-03T01:58:45+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Adson Leite",
+                "telefone": "+5571987083055",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "2386772488416693",
+              "created_time": "2026-01-02T16:15:07+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Anderson Amorim",
+                "telefone": "+5575981531771",
+                "cidade": "Feira de Santana",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "885848244131112",
+              "created_time": "2026-01-02T15:26:49+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Gustavo",
+                "telefone": "(71) 99167-6157",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1513290619964868",
+              "created_time": "2026-01-02T13:05:13+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Andrey Fernando",
+                "telefone": "+5582999806920",
+                "cidade": "Maceió",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1417754040011897",
+              "created_time": "2026-01-02T11:53:22+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Glauber Araujo",
+                "telefone": "+557188010140",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1311469994118847",
+              "created_time": "2026-01-02T10:50:23+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Jacqueline Fonseca",
+                "telefone": "+5571982651699",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "3932239363741236",
+              "created_time": "2026-01-02T06:04:36+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Willian Britto",
+                "telefone": "71981263332",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "2065027420912595",
+              "created_time": "2026-01-02T04:49:03+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Rodrigo Barbosa",
+                "telefone": "73 99983-8883",
+                "cidade": "Irajuba",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1348577193703124",
+              "created_time": "2026-01-02T01:29:53+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Patrícia Ribeiro",
+                "telefone": "+557191862265",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1915635542663080",
+              "created_time": "2026-01-02T00:07:48+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "nome_completo": "Marcus Borges",
+                "telefone": "+5571991319096",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1609825143349219",
+              "created_time": "2026-01-01T23:43:43+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "ESPETINHO DOS DINHOS",
+                "telefone": "+5571993091964",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "4078922129027106",
+              "created_time": "2026-01-01T22:14:33+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "nome_completo": "Vitor Bonfim",
+                "telefone": "+5571987379783",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1218354273572936",
+              "created_time": "2026-01-01T21:47:29+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Adailton Nunes",
+                "telefone": "+5571992076704",
+                "cidade": "Santo Amaro"
+              }
+            },
+            {
+              "id": "4335928566692071",
+              "created_time": "2026-01-01T19:09:47+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Maria Luyza Ribeiro Santana (Molango)",
+                "telefone": "+5571992779227",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1877074176227168",
+              "created_time": "2026-01-01T15:25:14+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Cleber Maia",
+                "telefone": "+5571987892924",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "2100721944039181",
+              "created_time": "2026-01-01T13:11:36+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Érico Fabiano",
+                "telefone": "+5575992083714",
+                "cidade": "Serrinha",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "2052308045317653",
+              "created_time": "2026-01-01T13:03:20+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Tailane Santana",
+                "telefone": "+5571987586585",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1387867686166924",
+              "created_time": "2026-01-01T11:35:37+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Gandhi Belens de Figueiredo",
+                "telefone": "+5571991241643",
+                "cidade": "Camaçari"
+              }
+            },
+            {
+              "id": "1680548066257572",
+              "created_time": "2026-01-01T02:17:32+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Rjc Carneiro",
+                "telefone": "+5571992334945",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1590022608802523",
+              "created_time": "2026-01-01T01:36:59+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Carla Viana",
+                "telefone": "71988152843",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1377969750688217",
+              "created_time": "2026-01-01T01:10:13+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "cidade": "Salvador",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "telefone": "+557199446551",
+                "nome_completo": "Iracema Rocha"
+              }
+            },
+            {
+              "id": "1417510163257019",
+              "created_time": "2025-12-30T01:12:55+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Mauro Heleno Valois Rocha Oliveira",
+                "telefone": "+74999358674",
+                "cidade": "Morro do Chapéu"
+              }
+            },
+            {
+              "id": "1386353189623160",
+              "created_time": "2025-12-30T00:51:58+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "telefone": "+557184609629",
+                "cidade": "salvador",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Jonh Cerqueira de jesus"
+              }
+            },
+            {
+              "id": "848333831164444",
+              "created_time": "2025-12-29T23:51:41+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Viviane Costa",
+                "telefone": "+5571991133400",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "860837040145985",
+              "created_time": "2025-12-29T19:02:55+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Cleiton Roza",
+                "telefone": "+5571988281131",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1225044399597448",
+              "created_time": "2025-12-29T16:50:32+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Hoyama Guedes",
+                "telefone": "+5571999106986",
+                "cidade": "Madre de Deus"
+              }
+            },
+            {
+              "id": "3833926866914574",
+              "created_time": "2025-12-29T11:55:02+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Empresa especializada em consertos de equipamentos importados.",
+                "telefone": "+5571996614629",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "867761052670840",
+              "created_time": "2025-12-28T22:47:27+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Lilian Carvalho",
+                "telefone": "+557197133135",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "890527576683487",
+              "created_time": "2025-12-28T20:46:53+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "nome_completo": "Junior Pereira",
+                "telefone": "+5582999873202",
+                "cidade": "Arapiraca",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1528249945121045",
+              "created_time": "2025-12-28T20:09:07+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "nome_completo": "Jose Carlos Menezes Gois",
+                "telefone": "+5579999748804",
+                "cidade": "Itabaiana",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "849736487827060",
+              "created_time": "2025-12-28T18:32:47+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Cleiton Guimarães",
+                "telefone": "+5571991046427",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "2196372851098291",
+              "created_time": "2025-12-28T17:12:05+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Marcelle Barreto",
+                "telefone": "+5521988730477",
+                "cidade": "Praia de itaipuacu",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1358109702195305",
+              "created_time": "2025-12-28T12:57:13+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Junior Andrade",
+                "telefone": "+5571997028330",
+                "cidade": "Dias d'??vila"
+              }
+            },
+            {
+              "id": "2610050409380316",
+              "created_time": "2025-12-28T10:47:30+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Zelia Almeida",
+                "telefone": "+5571996050039",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1198578735755665",
+              "created_time": "2025-12-28T04:34:26+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Carla Velho",
+                "telefone": "+5571993849437",
+                "cidade": "Lauro de Freitas",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1546898583227819",
+              "created_time": "2025-12-28T01:34:50+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "nome_completo": "Larissa De Eduardo",
+                "telefone": "+5577988073434",
+                "cidade": "Vitória da Conquista",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "859067540175474",
+              "created_time": "2025-12-28T01:32:26+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "telefone": "+557196391015",
+                "cidade": "Dias D'Ávila",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Antonio Carlos Almeida"
+              }
+            },
+            {
+              "id": "1179642967656647",
+              "created_time": "2025-12-27T16:05:00+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Nerwerton Nunes",
+                "telefone": "+5579999630191",
+                "cidade": "Campo do Brito",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1377572190831400",
+              "created_time": "2025-12-27T15:45:21+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Jose Junior",
+                "telefone": "5571993863590",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1168101878815487",
+              "created_time": "2025-12-27T14:33:07+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Filipe Liberato",
+                "telefone": "+5571986577649",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "847010358223385",
+              "created_time": "2025-12-27T13:28:53+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Silvonei Tavares",
+                "telefone": "+5571992917871",
+                "cidade": "Lauro de Freitas"
+              }
+            },
+            {
+              "id": "854316540561703",
+              "created_time": "2025-12-27T10:25:20+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Pr. Claudio Alex",
+                "telefone": "+5571988728587",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "3849820218488800",
+              "created_time": "2025-12-27T05:59:44+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "nome_completo": "Markus Classic",
+                "telefone": "+5571987754181",
+                "cidade": "Camaçari",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1240479894575078",
+              "created_time": "2025-12-27T03:38:27+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Joao Henrique Souza",
+                "telefone": "+5571983559550",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1573975040511072",
+              "created_time": "2025-12-27T02:46:42+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Dr. Renatto Behrens | Implantes e Bucomaxilo Salvador",
+                "telefone": "+5571988817702",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1489949102849244",
+              "created_time": "2025-12-27T01:12:17+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "nome_completo": "Anisia Silva",
+                "telefone": "+5568992298445",
+                "cidade": "Rio Branco",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1979740265934656",
+              "created_time": "2025-12-27T00:48:45+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Lucas Souza",
+                "telefone": "+5571992915390",
+                "cidade": "São Sebastião do Passé",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "1603594714332699",
+              "created_time": "2025-12-27T00:30:42+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Alex Fernandeys",
+                "telefone": "+5571993704129",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "867238559606056",
+              "created_time": "2025-12-27T00:20:06+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Bruno Franca",
+                "telefone": "+557191822414",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "4195464854117526",
+              "created_time": "2025-12-26T23:46:28+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Juca | Vereador",
+                "telefone": "+5571993510260",
+                "cidade": "Lauro de Freitas",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona"
+              }
+            },
+            {
+              "id": "798293336557830",
+              "created_time": "2025-12-26T04:09:31+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Ley Cerqueira",
+                "telefone": "+5519983069529",
+                "cidade": "Vinhedo"
+              }
+            },
+            {
+              "id": "868505453019802",
+              "created_time": "2025-12-26T04:07:25+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Elen Cortes",
+                "telefone": "+557193738720",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_03_e_06_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1300956335170481",
+              "created_time": "2025-12-25T17:34:40+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Jackson Lopes",
+                "telefone": "+5571999981095",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1375457320951082",
+              "created_time": "2025-12-25T16:58:04+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Diogo Cerqueira",
+                "telefone": "+5577998319480",
+                "cidade": "Barreiras",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "1377807419888260",
+              "created_time": "2025-12-25T15:26:39+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Solange Alves",
+                "telefone": "+559998191928",
+                "cidade": "Teixeira de Freitas"
+              }
+            },
+            {
+              "id": "1551862106065579",
+              "created_time": "2025-12-25T14:21:13+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Manutenção de Box Blindex",
+                "telefone": "+557199129050",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1265990741971325",
+              "created_time": "2025-12-25T05:21:45+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "ainda_não_sei,_preciso_de_ajuda.",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Josemar Moreira Dos Santos",
+                "telefone": "+5571991601956",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1752489992286511",
+              "created_time": "2025-12-25T03:22:28+0000",
+              "ad_id": "120238601344790740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Lucas Brito",
+                "telefone": "+5571988766365",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "2856340191230882",
+              "created_time": "2025-12-25T01:12:35+0000",
+              "ad_id": "120239172242830740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Sobreiro Lucas",
+                "telefone": "+5571999152441",
+                "cidade": "Jaua"
+              }
+            },
+            {
+              "id": "897510266036208",
+              "created_time": "2025-12-24T19:03:35+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "telefone": "+557182385864",
+                "cidade": "Salvador",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Claudio Gazineo"
+              }
+            },
+            {
+              "id": "2394724084298901",
+              "created_time": "2025-12-24T14:38:04+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "nome_completo": "Júlio Aquino Pinheiro",
+                "telefone": "+5571993819116",
+                "cidade": "Salvador",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            },
+            {
+              "id": "2193242721476469",
+              "created_time": "2025-12-24T13:45:15+0000",
+              "ad_id": "120239942153120740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$400,00_a_r$600,00",
+                "telefone": "+557199949054",
+                "cidade": "Salvador",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Santos"
+              }
+            },
+            {
+              "id": "810103131995622",
+              "created_time": "2025-12-24T02:03:48+0000",
+              "ad_id": "120238601344810740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "r$600,00_a_r$800,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "sim,_tenho_uma_ideia_de_como_funciona",
+                "nome_completo": "Walter",
+                "telefone": "+5571991102374",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "1433359772144112",
+              "created_time": "2025-12-24T01:23:14+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "entre_01_e_03_meses",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!",
+                "nome_completo": "Luciano Gomez",
+                "telefone": "+5571988091771",
+                "cidade": "Salvador"
+              }
+            },
+            {
+              "id": "888074103565627",
+              "created_time": "2025-12-23T22:35:52+0000",
+              "ad_id": "120239172242840740",
+              "fields": {
+                "nome_completo": "Abraão Marques",
+                "telefone": "+557199005661",
+                "cidade": "Coração de Maria Bahia",
+                "qual_valor_médio_da_sua_conta_de_energia_nos_últimos_3_meses,_em_média?": "acima_de_r$900,00",
+                "quando_pretende_instalar_seu_sistema_solar,_caso_atenda_sua_expectativa?": "imediatamente",
+                "ja_realizou_algum_orçamento_de_energia_solar_antes?": "ainda_não,_essa_é_a_primeira_vez!"
+              }
+            }
+          ]
+        },
+        {
+          "id": "1172778217943293",
+          "name": "Leads",
+          "status": "ACTIVE",
+          "leads_count": 14,
+          "leads": [
+            {
+              "id": "1164692048498435",
+              "created_time": "2025-11-04T03:26:56+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "full_name": "Mel Americo Moreira",
+                "phone_number": "(75) 98157-6741",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto"
+              }
+            },
+            {
+              "id": "817423787691224",
+              "created_time": "2025-11-04T03:13:15+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "full_name": "Adriana Assis santos",
+                "phone_number": "+5571988223775"
+              }
+            },
+            {
+              "id": "1161202162642110",
+              "created_time": "2025-11-03T21:55:32+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "Francisco Edilson",
+                "phone_number": "+5585981704619"
+              }
+            },
+            {
+              "id": "1197056478524649",
+              "created_time": "2025-11-03T21:04:38+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_301_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "Luziara Oliveira",
+                "phone_number": "+5571987876787"
+              }
+            },
+            {
+              "id": "1123223886243941",
+              "created_time": "2025-11-03T18:36:57+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "full_name": "Iracema Martins",
+                "phone_number": "+5585988377150",
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "de_r$_301_a_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos"
+              }
+            },
+            {
+              "id": "1099512388754975",
+              "created_time": "2025-11-03T16:56:48+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "vanderley",
+                "phone_number": "+557196303475"
+              }
+            },
+            {
+              "id": "1649248696051458",
+              "created_time": "2025-11-01T03:49:50+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "Simone Oliver",
+                "phone_number": "+5585991819797"
+              }
+            },
+            {
+              "id": "854683881060305",
+              "created_time": "2025-11-01T01:07:57+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "Magno",
+                "phone_number": "+5571983493758"
+              }
+            },
+            {
+              "id": "1716977628990376",
+              "created_time": "2025-11-01T00:28:34+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "acima_de_r$_600",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "full_name": "Del Sousa",
+                "phone_number": "+5571997080724"
+              }
+            },
+            {
+              "id": "1333692641733867",
+              "created_time": "2025-10-31T22:00:55+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "Manu Rodrigues",
+                "phone_number": "+5571988566015"
+              }
+            },
+            {
+              "id": "1124811563191494",
+              "created_time": "2025-10-31T10:37:02+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "quero_entender_melhor_os_benefícios_e_custos",
+                "full_name": "Odair JN",
+                "phone_number": "+5575999943156"
+              }
+            },
+            {
+              "id": "1303585601522742",
+              "created_time": "2025-10-31T10:35:53+0000",
+              "ad_id": "120234542986900660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "full_name": "Aurelino Gonçalves da Silva",
+                "phone_number": "+5573999745254"
+              }
+            },
+            {
+              "id": "820446544034415",
+              "created_time": "2025-10-30T18:07:34+0000",
+              "ad_id": "120234372979810660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "só_estou_pesquisando_por_enquanto",
+                "full_name": "Carlos Alberto dos Santos",
+                "phone_number": "71991134517"
+              }
+            },
+            {
+              "id": "1329274855344831",
+              "created_time": "2025-10-29T11:11:06+0000",
+              "ad_id": "120234372979810660",
+              "fields": {
+                "qual_é_o_valor_médio_da_sua_conta_de_luz_por_mês?": "até_r$_300",
+                "em_qual_etapa_você_está_em_relação_à_energia_solar?": "_já_decidi_e_quero_um_orçamento",
+                "full_name": "Thiago aquino",
+                "phone_number": "+5575983244074"
+              }
+            }
+          ]
+        },
+        {
+          "id": "653312680896811",
+          "name": "Formulário 25/03/2025",
+          "status": "ACTIVE",
+          "leads_count": 0,
+          "leads": []
+        }
+      ]
+    }
+  ]
+}

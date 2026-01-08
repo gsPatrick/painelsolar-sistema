@@ -23,5 +23,20 @@ router.get('/status', async (req, res) => {
     }
 });
 
+// Message Queue routes
+const messageQueue = require('../../services/MessageQueueService');
+
+router.get('/queue/status', (req, res) => {
+    res.json(messageQueue.getStatus());
+});
+
+router.delete('/queue/clear', (req, res) => {
+    const cleared = messageQueue.clearQueue();
+    res.json({
+        message: `Fila limpa. ${cleared} tarefas removidas.`,
+        cleared
+    });
+});
+
 module.exports = router;
 

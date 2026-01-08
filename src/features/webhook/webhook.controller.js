@@ -604,12 +604,13 @@ class WebhookController {
 
     /**
      * POST /webhook/meta/sync
-     * Manually sync/import leads from Meta (backfill)
+     * Manually sync/import leads from Meta (backfill) - USES MESSAGE QUEUE
      */
     async syncMetaLeads(req, res) {
         try {
             const { page_id, form_id, limit = 100 } = req.body;
             const metaService = require('../../services/MetaService');
+            const messageQueue = require('../../services/MessageQueueService');
 
             if (!metaService.isConfigured()) {
                 return res.status(400).json({
@@ -617,15 +618,14 @@ class WebhookController {
                 });
             }
 
-            console.log('[Webhook] Starting Meta leads sync...');
+            console.log('\n📦 [Sync] INICIANDO SINCRONIZAÇÃO DE LEADS META');
+            console.log('═'.repeat(50));
 
             let rawLeads = [];
 
             if (form_id) {
-                // Sync from specific form
                 rawLeads = await metaService.getFormLeads(form_id, limit);
             } else if (page_id) {
-                // Sync from all forms of a page
                 rawLeads = await metaService.getAllPageLeads(page_id, limit);
             } else {
                 return res.status(400).json({
@@ -633,11 +633,12 @@ class WebhookController {
                 });
             }
 
-            console.log(`[Webhook] Found ${rawLeads.length} leads to process`);
+            console.log(`[Sync] 📋 ${rawLeads.length} leads encontrados no Meta`);
 
             let imported_count = 0;
             let skipped_count = 0;
-            const errors = [];
+            let queued_count = 0;
+            const queueTasks = [];
 
             for (const rawLead of rawLeads) {
                 try {
@@ -653,52 +654,91 @@ class WebhookController {
                         continue;
                     }
 
-                    // Get complete lead data with campaign info
-                    const completeData = await metaService.getCompleteLeadData(leadgenId, rawLead.ad_id);
+                    // Get lead data (quick - just name/phone)
+                    const leadData = await metaService.getLeadData(leadgenId);
+                    const fields = metaService.parseFieldData(leadData.field_data || []);
 
-                    // Check if lead exists by phone
-                    if (completeData.phone) {
-                        const existingByPhone = await leadService.findByPhone(completeData.phone);
-                        if (existingByPhone) {
-                            // Update existing with meta data
-                            existingByPhone.meta_leadgen_id = leadgenId;
-                            existingByPhone.meta_campaign_data = completeData.meta_campaign_data;
-                            if (!existingByPhone.source || existingByPhone.source === 'manual') {
-                                existingByPhone.source = 'meta_ads';
-                            }
-                            await existingByPhone.save();
-                            skipped_count++;
-                            continue;
-                        }
+                    const phone = fields.phone;
+                    const name = fields.name || 'Meta Lead';
+
+                    if (!phone) {
+                        console.log(`[Sync] ⚠️ Lead ${leadgenId} sem telefone - ignorado`);
+                        skipped_count++;
+                        continue;
                     }
 
-                    // Process as new lead (reuse webhook logic)
-                    await this.processMetaLead({
-                        leadgen_id: leadgenId,
-                        ad_id: rawLead.ad_id,
-                        form_id: rawLead.form_id,
+                    // Check if lead exists by phone
+                    const existingByPhone = await leadService.findByPhone(phone);
+                    if (existingByPhone) {
+                        existingByPhone.meta_leadgen_id = leadgenId;
+                        existingByPhone.source = 'meta_ads';
+                        await existingByPhone.save();
+                        skipped_count++;
+                        continue;
+                    }
+
+                    // Find pipeline
+                    let targetPipeline = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
+                    if (!targetPipeline) {
+                        targetPipeline = await Pipeline.findOne({ order: [['order_index', 'ASC']] });
+                    }
+
+                    // CREATE LEAD (but don't send message yet - add to queue)
+                    const lead = await Lead.create({
+                        name: name,
+                        phone: phone,
+                        source: 'meta_ads',
+                        meta_leadgen_id: leadgenId,
+                        pipeline_id: targetPipeline?.id || null,
+                        last_interaction_at: new Date(),
                     });
 
+                    console.log(`[Sync] ✅ Lead criado: ${lead.name} (${lead.phone})`);
                     imported_count++;
 
+                    // Add to queue for AI greeting (will be sent with delay)
+                    queueTasks.push({
+                        type: 'ai_greeting',
+                        phone: lead.phone,
+                        leadId: lead.id,
+                        leadName: lead.name,
+                    });
+
+                    // Enrich campaign data in background
+                    this.enrichMetaLeadCampaignData(lead, leadgenId, rawLead.ad_id).catch(() => { });
+
                 } catch (err) {
-                    console.error(`[Webhook] Error processing lead ${rawLead.id}:`, err.message);
-                    errors.push({ id: rawLead.id, error: err.message });
+                    console.error(`[Sync] ❌ Erro no lead ${rawLead.id}:`, err.message);
                 }
             }
 
-            console.log(`[Webhook] Sync complete: ${imported_count} imported, ${skipped_count} skipped`);
+            // Add all tasks to queue (will be processed with 30-60s delay between each)
+            if (queueTasks.length > 0) {
+                queued_count = messageQueue.addBulkToQueue(queueTasks);
+                const queueStatus = messageQueue.getStatus();
+
+                console.log(`\n[Sync] 📬 ${queued_count} mensagens adicionadas à fila`);
+                console.log(`[Sync] ⏱️ Tempo estimado: ~${queueStatus.estimatedTimeMinutes} minutos`);
+            }
+
+            console.log('═'.repeat(50));
+            console.log(`[Sync] 📊 RESUMO: ${imported_count} importados, ${skipped_count} ignorados, ${queued_count} na fila`);
+            console.log('═'.repeat(50) + '\n');
 
             res.json({
                 status: 'success',
                 imported_count,
                 skipped_count,
+                queued_for_message: queued_count,
                 total_found: rawLeads.length,
-                errors: errors.length > 0 ? errors : undefined,
+                queue_status: messageQueue.getStatus(),
+                message: queued_count > 0
+                    ? `${queued_count} leads serão contatados com intervalo de 30-60s para proteger o chip.`
+                    : 'Nenhum novo lead para contatar.',
             });
 
         } catch (error) {
-            console.error('[Webhook] Error syncing Meta leads:', error.message);
+            console.error('[Sync] ❌ Erro geral:', error.message);
             res.status(500).json({
                 error: 'Erro ao sincronizar leads do Meta',
                 details: error.message
