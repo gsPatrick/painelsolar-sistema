@@ -575,7 +575,7 @@ class WebhookController {
         const challenge = req.query['hub.challenge'];
 
         // Your verify token (set in Meta dashboard)
-        const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'solar_crm_verify';
+        const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'dge_energia_segredo_2026';
 
         if (mode === 'subscribe' && token === VERIFY_TOKEN) {
             console.log('[Webhook] Meta webhook verified');
