@@ -146,9 +146,9 @@ class WebhookController {
         senderName = senderName || `WhatsApp ${phone}`;
 
         if (!lead) {
-            // Create new lead in 'Primeiro Contato' pipeline
+            // Create new lead in 'Entrada' pipeline
             let targetPipeline = await Pipeline.findOne({
-                where: { title: 'Primeiro Contato' }
+                where: { title: 'Entrada' }
             });
 
             if (!targetPipeline) {
@@ -161,10 +161,10 @@ class WebhookController {
             // If absolutely no pipeline exists (edge case), create one
             if (!targetPipeline) {
                 targetPipeline = await Pipeline.create({
-                    title: 'Primeiro Contato',
-                    color: '#F59E0B',
-                    order_index: 1,
-                    sla_limit_days: 2
+                    title: 'Entrada',
+                    color: '#64748B',
+                    order_index: 0,
+                    sla_limit_days: 1
                 });
             }
 
@@ -184,9 +184,22 @@ class WebhookController {
 
             console.log(`[Webhook] Created new lead: ${lead.id} (phone: ${actualPhone || 'LID only'}, LID: ${lidValue}) in pipeline: ${targetPipeline.title}`);
         } else if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
-            // Update name if we have a better one now
             lead.name = senderName;
             await lead.save();
+        }
+
+        // AUTO-TRANSITION: If lead is in 'Entrada' and responds, move to 'Primeiro Contato'
+        // We check current pipeline name. 
+        if (lead.pipeline_id) {
+            const currentPipeline = await Pipeline.findByPk(lead.pipeline_id);
+            if (currentPipeline && currentPipeline.title === 'Entrada') {
+                const primeiroContatoApi = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
+                if (primeiroContatoApi) {
+                    lead.pipeline_id = primeiroContatoApi.id;
+                    console.log(`[Webhook] Lead ${lead.phone} moved from Entrada to Primeiro Contato due to response.`);
+                    await lead.save();
+                }
+            }
         }
 
         // Update last interaction and reset follow-up count (restart sequence)
@@ -322,9 +335,9 @@ class WebhookController {
             }
 
             // Move to "Enviar Proposta"
-            const enviarProposta = await Pipeline.findOne({ where: { title: 'Enviar Proposta' } });
+            const enviarProposta = await Pipeline.findOne({ where: { title: 'Aguardando Proposta' } });
             if (!enviarProposta) {
-                console.warn('[Webhook] "Enviar Proposta" pipeline not found');
+                console.warn('[Webhook] "Aguardando Proposta" pipeline not found');
                 return;
             }
 
@@ -446,7 +459,7 @@ class WebhookController {
         }
 
         // STEP 2: Find pipeline
-        let targetPipeline = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
+        let targetPipeline = await Pipeline.findOne({ where: { title: 'Entrada' } });
         if (!targetPipeline) {
             targetPipeline = await Pipeline.findOne({ order: [['order_index', 'ASC']] });
         }

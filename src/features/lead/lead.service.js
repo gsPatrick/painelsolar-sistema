@@ -159,7 +159,7 @@ class LeadService {
         let daysToAdd = 0;
         let taskTitle = '';
 
-        if (pipelineTitle.includes('proposta enviada') || pipelineTitle.includes('proposta')) {
+        if (pipelineTitle.includes('proposta enviada')) {
             daysToAdd = 2;
             taskTitle = 'Follow-up: Verificar interesse na proposta';
         } else if (pipelineTitle.includes('negociação') || pipelineTitle.includes('negociacao')) {
