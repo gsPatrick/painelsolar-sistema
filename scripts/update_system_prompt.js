@@ -1,40 +1,8 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+require('dotenv').config();
+const SystemSettings = require('../src/models/SystemSettings');
+const sequelize = require('../src/config/database');
 
-const SystemSettings = sequelize.define('SystemSettings', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-    },
-    key: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true,
-    },
-    value: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    type: {
-        type: DataTypes.ENUM('string', 'number', 'boolean', 'json'),
-        defaultValue: 'string',
-    },
-    description: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
-    },
-}, {
-    tableName: 'system_settings',
-});
-
-// Default settings to seed
-SystemSettings.DEFAULT_SETTINGS = [
-    {
-        key: 'openai_system_prompt',
-        type: 'string',
-        description: 'Script da Sol (prompt do sistema)',
-        value: `Opere como a Sol, consultora da DGE Energia.
+const PROMPT_VALUE = `Opere como a Sol, consultora da DGE Energia.
 Você é humana, profissional e genuinamente interessada em ajudar.
 Você NÃO é uma IA. Você é uma pessoa real. NUNCA revele que é uma inteligência artificial.
 
@@ -109,57 +77,33 @@ REGRAS IMPORTANTES:
 6. NUNCA diga que é uma IA, assistente virtual ou robô.
 7. Use emojis com moderação (😊, 😉).
 8. Analise o histórico da conversa para identificar em qual etapa você está.
-9. SE O CLIENTE JÁ RESPONDEU uma pergunta de uma etapa futura (ex: já disse que tem urgência), PULE a pergunta dessa etapa e vá direto para a próxima. NÃO seja repetitiva.`,
-    },
-    {
-        key: 'followup_delay_hours',
-        type: 'number',
-        description: 'Horas de espera antes de enviar follow-up',
-        value: '24',
-    },
-    {
-        key: 'message_delay_seconds',
-        type: 'number',
-        description: 'Segundos de delay para simular digitação',
-        value: '3',
-    },
-    {
-        key: 'followup_message',
-        type: 'string',
-        description: 'Mensagem de follow-up automático',
-        value: 'Olá! Tudo bem? 😊 Passando para saber se conseguiu avaliar nossa proposta. Ficou com alguma dúvida? Estou à disposição!',
-    },
-    {
-        key: 'max_followups',
-        type: 'number',
-        description: 'Quantidade máxima de follow-ups por lead',
-        value: '3',
-    },
-    {
-        key: 'business_hours_start',
-        type: 'number',
-        description: 'Hora de início do horário comercial',
-        value: '8',
-    },
-    {
-        key: 'business_hours_end',
-        type: 'number',
-        description: 'Hora de término do horário comercial',
-        value: '20',
-    },
-];
+9. SE O CLIENTE JÁ RESPONDEU uma pergunta de uma etapa futura (ex: já disse que tem urgência), PULE a pergunta dessa etapa e vá direto para a próxima. NÃO seja repetitiva.`;
 
-// Seed default settings
-SystemSettings.seedDefaults = async function () {
-    for (const setting of this.DEFAULT_SETTINGS) {
-        const [instance, created] = await this.findOrCreate({
-            where: { key: setting.key },
-            defaults: setting,
-        });
-        if (created) {
-            console.log(`[SystemSettings] Created default: ${setting.key}`);
+async function updatePrompt() {
+    try {
+        await sequelize.authenticate();
+        console.log('Database connected.');
+
+        const setting = await SystemSettings.findOne({ where: { key: 'openai_system_prompt' } });
+        if (setting) {
+            setting.value = PROMPT_VALUE;
+            await setting.save();
+            console.log('✅ System prompt updated successfully!');
+        } else {
+            console.log('⚠️ System prompt not found in database. Creating default...');
+            await SystemSettings.create({
+                key: 'openai_system_prompt',
+                value: PROMPT_VALUE,
+                description: 'Script da Sol (prompt do sistema)',
+                type: 'string'
+            });
+            console.log('✅ System prompt created successfully!');
         }
+    } catch (error) {
+        console.error('Error updating prompt:', error);
+    } finally {
+        await sequelize.close();
     }
-};
+}
 
-module.exports = SystemSettings;
+updatePrompt();

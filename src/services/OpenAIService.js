@@ -4,8 +4,8 @@ const env = require('../config/env');
 class OpenAIService {
     constructor() {
         this.client = null;
-        this.systemPrompt = `Você é a Sol, consultora em redução de custos de energia da DGE Energia.
-Você é humana, profissional e genuinamente interessada em ajudar. Seu tom é acolhedor mas objetivo.
+        this.systemPrompt = `Opere como a Sol, consultora da DGE Energia.
+Você é humana, profissional e genuinamente interessada em ajudar.
 Você NÃO é uma IA. Você é uma pessoa real. NUNCA revele que é uma inteligência artificial.
 
 SIGA ESTE SCRIPT EXATAMENTE, ETAPA POR ETAPA:
@@ -71,7 +71,7 @@ Estamos agilizando para enviar essa simulação detalhada em breve, onde será p
 ═══════════════════════════════════════════════════════════════
 REGRAS IMPORTANTES:
 ═══════════════════════════════════════════════════════════════
-1. SIGA AS ETAPAS NA ORDEM. Não pule etapas.
+1. SIGA AS ETAPAS NA ORDEM, mas pule etapas se a informação já foi fornecida espontaneamente.
 2. Use as mensagens EXATAMENTE como estão escritas, apenas substituindo {nome do cliente} pelo nome real.
 3. Se o cliente desviar do assunto, traga-o gentilmente de volta ao script.
 4. Se o cliente ainda está só pesquisando (Etapa 3), diga: "Entendo! Sem problemas. Quando estiver pronto para avançar, estou à disposição. Posso já deixar anotado seu contato para quando quiser retomar?"
@@ -178,7 +178,7 @@ REGRAS IMPORTANTES:
   "state": "estado se mencionado ou null",
   "installation_type": "residencial, comercial ou rural se mencionado ou null",
   "interest_financing": true/false/null
-}`,
+}`
                     },
                     { role: 'user', content: message },
                 ],
@@ -193,6 +193,61 @@ REGRAS IMPORTANTES:
         } catch (error) {
             console.error('[OpenAIService] Error extracting lead info:', error.message);
             return { success: false, data: {} };
+        }
+    }
+
+    /**
+     * Transcribe audio URL using OpenAI Whisper
+     * @param {string} audioUrl - URL of the audio file (OGG/MP3)
+     */
+    async transcribeAudio(audioUrl) {
+        if (!this.client) {
+            return { success: false, error: 'OpenAI not configured' };
+        }
+
+        try {
+            // OpenAI requires a file-like object or fetch response stream
+            // Since we have a URL, we just pass the URL to the API? No, the Node SDK expects a File object or ReadStream.
+            // We need to fetch the audio first.
+            const axios = require('axios');
+            const fs = require('fs');
+            const path = require('path');
+            const os = require('os');
+            const { v4: uuidv4 } = require('uuid');
+
+            // Download audio to temp file
+            const tempFilePath = path.join(os.tmpdir(), `${uuidv4()}.ogg`);
+            const writer = fs.createWriteStream(tempFilePath);
+
+            const response = await axios({
+                url: audioUrl,
+                method: 'GET',
+                responseType: 'stream',
+                timeout: 10000 // 10s timeout
+            });
+
+            response.data.pipe(writer);
+
+            await new Promise((resolve, reject) => {
+                writer.on('finish', resolve);
+                writer.on('error', reject);
+            });
+
+            // Transcribe
+            const transcription = await this.client.audio.transcriptions.create({
+                file: fs.createReadStream(tempFilePath),
+                model: 'whisper-1',
+                language: 'pt', // Force Portuguese
+            });
+
+            // Cleanup temp file
+            fs.unlinkSync(tempFilePath);
+
+            return { success: true, text: transcription.text };
+
+        } catch (error) {
+            console.error('[OpenAIService] Error transcribing audio:', error.message);
+            return { success: false, error: error.message };
         }
     }
 }

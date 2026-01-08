@@ -173,12 +173,17 @@ class MetaService {
      * Used for backfill sync
      */
     async getAllPageLeads(pageId, limit = 100) {
+        console.log(`[MetaService] Fetching all leads for page ${pageId}...`);
         const forms = await this.getPageForms(pageId);
+        console.log(`[MetaService] Found ${forms.length} forms.`);
         const allLeads = [];
 
         for (const form of forms) {
             try {
+                console.log(`[MetaService] Fetching leads for form: ${form.name} (${form.id})...`);
                 const leads = await this.getFormLeads(form.id, limit);
+                console.log(`[MetaService] - Found ${leads.length} leads in form ${form.name}`);
+
                 for (const lead of leads) {
                     lead.form_id = form.id;
                     lead.form_name = form.name;
@@ -189,6 +194,7 @@ class MetaService {
             }
         }
 
+        console.log(`[MetaService] Total leads fetched: ${allLeads.length}`);
         return allLeads;
     }
 

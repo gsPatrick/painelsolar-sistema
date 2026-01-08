@@ -45,7 +45,8 @@ class WebhookController {
             const senderName = payload.senderName || payload.notifyName || payload.name || `WhatsApp ${phone}`;
 
             // Process incoming message
-            await this.processIncomingMessage(phone, message, senderName, chatLid);
+            const audioUrl = messageData.type === 'audio' ? messageData.audioUrl : null;
+            await this.processIncomingMessage(phone, message, senderName, chatLid, audioUrl);
 
             res.status(200).json({ message: 'Processed successfully' });
         } catch (error) {
@@ -87,7 +88,19 @@ class WebhookController {
             };
         }
 
-        // 3. Body/From format (common in some webhooks)
+        // 3. Audio/Voice message
+        if (payload.audio || payload.voice || (payload.message && (payload.message.audio || payload.message.voice))) {
+            const audioObj = payload.audio || payload.voice || payload.message.audio || payload.message.voice;
+            return {
+                phone: payload.phone || payload.from.replace('@c.us', ''),
+                message: '[AUDIO]', // Placeholder, will be handled in processIncomingMessage
+                type: 'audio',
+                audioUrl: audioObj.url || audioObj.link, // Z-API usually sends 'link' or 'url'
+                isFromMe: isFromMe,
+            };
+        }
+
+        // 4. Body/From format (common in some webhooks)
         if (payload.body && payload.from) {
             return {
                 phone: payload.from.replace('@c.us', ''),
@@ -130,7 +143,7 @@ class WebhookController {
     /**
      * Process incoming WhatsApp message
      */
-    async processIncomingMessage(phone, messageText, senderName, chatLid) {
+    async processIncomingMessage(phone, messageText, senderName, chatLid, audioUrl = null) {
         // ... (preserving logic) ...
         console.log(`[Webhook] Processing message from ${phone}: ${messageText}`);
 
@@ -207,19 +220,65 @@ class WebhookController {
         lead.followup_count = 0;
         await lead.save();
 
-        // Save user message
-        await Message.create({
-            lead_id: lead.id,
-            content: messageText,
-            sender: 'user',
-            timestamp: new Date(),
-        });
+        // AUDIO HANDLING: If audioUrl is present, transcribe it
+        let finalMessageText = messageText;
+        let isAudio = false;
+
+        if (audioUrl) {
+            console.log(`[Webhook] 🎤 Voice message received from ${phone}. Transcribing...`);
+            const transcription = await openAIService.transcribeAudio(audioUrl);
+
+            if (transcription.success) {
+                console.log(`[Webhook] 📝 Transcription: "${transcription.text}"`);
+                finalMessageText = transcription.text;
+                isAudio = true;
+
+                // Save user message (Original Audio + Transcription)
+                await Message.create({
+                    lead_id: lead.id,
+                    content: `[ÁUDIO TRANSCRITO]: ${finalMessageText}`,
+                    sender: 'user',
+                    timestamp: new Date(),
+                });
+            } else {
+                console.warn(`[Webhook] Failed to transcribe audio: ${transcription.error}`);
+                // Save as audio placeholder
+                await Message.create({
+                    lead_id: lead.id,
+                    content: '[ÁUDIO NÃO TRANSCRITO]',
+                    sender: 'user',
+                    timestamp: new Date(),
+                });
+                return; // Stop if we can't understand
+            }
+        } else {
+            // Save user message (Text)
+            await Message.create({
+                lead_id: lead.id,
+                content: messageText,
+                sender: 'user',
+                timestamp: new Date(),
+            });
+        }
 
         // Check if AI is paused for this lead (human takeover OR ai_status)
         if (lead.human_takeover || lead.ai_status !== 'active') {
             console.log(`[Webhook] AI is ${lead.ai_status} for lead ${lead.id}. Skipping AI response.`);
             return;
         }
+
+        // HUMANIZED DELAY:
+        // 1. Listening time (if audio): Duration of audio (simulated) + Processing
+        // 2. Typing time: Based on response length
+
+        // Simulate listening time for audio (random 3-7s)
+        if (isAudio) {
+            await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 4000) + 3000));
+        }
+
+        // Send "Typing..." (or "Recording..." to imply voice response, but text is safer for now)
+        // We actually send typing in sendMessage, but let's do pre-calculation delay here?
+        // Actually, let's let generateResponse run first so we know WHAT to type.
 
         // Load dynamic prompt from SystemSettings
         let dynamicPrompt = null;
@@ -261,6 +320,14 @@ class WebhookController {
                 responseText = responseText.replace('[ENVIAR_VIDEO_PROVA_SOCIAL]', '').trim();
             }
 
+            // CALCULATE HUMANIZED DELAY FOR TYPING
+            // Approx 0.05s per character (very fast typist) to 0.1s
+            const charCount = responseText.length;
+            const typingDelayMs = Math.min(Math.max(charCount * 60, 2000), 10000); // Min 2s, Max 10s
+            const typingDelaySec = Math.ceil(typingDelayMs / 1000);
+
+            console.log(`[Webhook] ⏳ Humanized Delay: Typing for ~${typingDelaySec}s (${charCount} chars)`);
+
             // Save AI response (cleaned text)
             await Message.create({
                 lead_id: lead.id,
@@ -269,8 +336,8 @@ class WebhookController {
                 timestamp: new Date(),
             });
 
-            // Send text via WhatsApp (with typing indicator for human-like feel)
-            await whatsAppService.sendMessage(phone, responseText, 3);
+            // Send text via WhatsApp (with calculated typing delay)
+            await whatsAppService.sendMessage(phone, responseText, typingDelaySec);
             console.log(`[Webhook] AI response sent to ${phone}`);
 
             // Send video if tag was present
@@ -334,7 +401,7 @@ class WebhookController {
                 return; // Already moved or not in first stage
             }
 
-            // Move to "Enviar Proposta"
+            // Move to "Aguardando Proposta"
             const enviarProposta = await Pipeline.findOne({ where: { title: 'Aguardando Proposta' } });
             if (!enviarProposta) {
                 console.warn('[Webhook] "Aguardando Proposta" pipeline not found');
@@ -345,7 +412,7 @@ class WebhookController {
             lead.ai_enabled = false; // Disable AI - human takes over
             await lead.save();
 
-            console.log(`[Webhook] Lead ${lead.id} (${lead.name}) moved to "Enviar Proposta"`);
+            console.log(`[Webhook] Lead ${lead.id} (${lead.name}) moved to "Aguardando Proposta"`);
 
             // Send notification to all active admin numbers
             await this.notifyAdminsAboutLead(lead);
