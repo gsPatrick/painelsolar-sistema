@@ -134,13 +134,31 @@ const messageController = {
                 }
             }
 
+            // AUTOMATION: If sending a DOCUMENT (Proposal), move to 'Proposta Enviada'
+            // We assume if agent sends a PDF, it's likely the proposal, especially if they are in 'Aguardando Proposta'
+            if (type === 'document' || (file && file.mimetype === 'application/pdf')) {
+                const { Pipeline } = require('../../models'); // Import Pipeline
+                // Check current stage
+                const currentPipeline = await Pipeline.findByPk(lead.pipeline_id);
+
+                if (currentPipeline && currentPipeline.title === 'Aguardando Proposta') {
+                    const propostaEnviada = await Pipeline.findOne({ where: { title: 'Proposta Enviada' } });
+
+                    if (propostaEnviada) {
+                        lead.pipeline_id = propostaEnviada.id;
+                        await lead.save();
+                        console.log(`[MessageController] Lead ${lead.id} moved to 'Proposta Enviada' after sending document.`);
+                    }
+                }
+            }
+
             // 5. Save to DB
             const message = await messageService.create({
                 lead_id,
                 content: content || (type === 'audio' ? 'Áudio enviado' : `Arquivo ${type}`),
                 sender: 'agent', // Always agent for manual media upload
                 timestamp: new Date(),
-                type: type || 'image',
+                type: type || 'image', // 'document' type requires schema update? let's stick to existing types or 'text' with attachment
                 attachment_url: fileUrl
             });
 

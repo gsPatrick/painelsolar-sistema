@@ -199,6 +199,84 @@ class LeadController {
             res.status(400).json({ error: error.message });
         }
     }
+
+    /**
+     * GET /leads/export
+     * Export all leads as CSV for backup
+     */
+    async exportCsv(req, res) {
+        try {
+            const { Lead } = require('../../models');
+
+            // Fetch ALL leads (including deleted/blocked)
+            const leads = await Lead.findAll({
+                order: [['createdAt', 'DESC']],
+                paranoid: false, // Include soft-deleted
+            });
+
+            // Build CSV content
+            const headers = ['Nome', 'Telefone', 'Origem', 'Data Criação', 'Última Interação', 'Status IA', 'Valor Conta', 'Pipeline ID'];
+            const rows = leads.map(lead => [
+                `"${(lead.name || '').replace(/"/g, '""')}"`,
+                lead.phone || '',
+                lead.source || 'manual',
+                lead.createdAt ? new Date(lead.createdAt).toISOString() : '',
+                lead.last_interaction_at ? new Date(lead.last_interaction_at).toISOString() : '',
+                lead.ai_status || 'active',
+                lead.monthly_bill || '',
+                lead.pipeline_id || '',
+            ]);
+
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+            // Set headers for CSV download
+            const filename = `backup_leads_${new Date().toISOString().split('T')[0]}.csv`;
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+            console.log(`[LeadController] Exporting ${leads.length} leads to CSV`);
+            res.status(200).send('\uFEFF' + csvContent); // BOM for Excel UTF-8 compatibility
+
+        } catch (error) {
+            console.error('[LeadController] ExportCsv error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    /**
+     * GET /leads/stats
+     * Get lead statistics for backup page
+     */
+    async getStats(req, res) {
+        try {
+            const { Lead } = require('../../models');
+
+            const totalLeads = await Lead.count({ paranoid: false });
+            const activeLeads = await Lead.count({ where: { ai_status: 'active' } });
+            const lastLead = await Lead.findOne({
+                order: [['createdAt', 'DESC']],
+                paranoid: false,
+            });
+
+            // Get recent 50 leads for preview
+            const recentLeads = await Lead.findAll({
+                order: [['createdAt', 'DESC']],
+                limit: 50,
+                paranoid: false,
+                attributes: ['id', 'name', 'phone', 'source', 'createdAt', 'last_interaction_at', 'ai_status'],
+            });
+
+            res.status(200).json({
+                total: totalLeads,
+                active: activeLeads,
+                lastCreated: lastLead?.createdAt || null,
+                recentLeads,
+            });
+        } catch (error) {
+            console.error('[LeadController] GetStats error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new LeadController();

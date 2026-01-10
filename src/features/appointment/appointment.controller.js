@@ -68,14 +68,32 @@ class AppointmentController {
         try {
             const { lead_id, date_time, type, notes } = req.body;
 
+            // DEBUG: Log full payload received
+            console.log('[AppointmentController] CREATE - Payload received:', JSON.stringify(req.body, null, 2));
+            console.log('[AppointmentController] CREATE - Parsed values:', { lead_id, date_time, type, notes });
+
             if (!lead_id || !date_time || !type) {
+                console.warn('[AppointmentController] CREATE - Missing required fields:', {
+                    hasLeadId: !!lead_id,
+                    hasDateTime: !!date_time,
+                    hasType: !!type
+                });
                 return res.status(400).json({ error: 'lead_id, date_time e type são obrigatórios' });
             }
 
-            const appointment = await appointmentService.create({ lead_id, date_time, type, notes });
+            // Ensure date_time is a valid Date object
+            const parsedDateTime = new Date(date_time);
+            console.log('[AppointmentController] CREATE - Parsed DateTime:', parsedDateTime, 'Valid:', !isNaN(parsedDateTime.getTime()));
+
+            if (isNaN(parsedDateTime.getTime())) {
+                return res.status(400).json({ error: 'date_time inválido. Use formato ISO (ex: 2026-01-10T09:00:00.000Z)' });
+            }
+
+            const appointment = await appointmentService.create({ lead_id, date_time: parsedDateTime, type, notes });
+            console.log('[AppointmentController] CREATE - Success! Appointment ID:', appointment.id);
             res.status(201).json(appointment);
         } catch (error) {
-            console.error('[AppointmentController] Create error:', error.message);
+            console.error('[AppointmentController] Create error:', error.message, error.stack);
             // Return 409 Conflict if it's a schedule conflict
             const statusCode = error.statusCode || 400;
             res.status(statusCode).json({ error: error.message });

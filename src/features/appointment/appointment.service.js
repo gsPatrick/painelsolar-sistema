@@ -1,4 +1,4 @@
-const { Appointment, Lead } = require('../../models');
+const { Appointment, Lead, Pipeline } = require('../../models');
 const { Op } = require('sequelize');
 
 class AppointmentService {
@@ -82,13 +82,38 @@ class AppointmentService {
             }
         }
 
-        return Appointment.create({
+        const appointment = await Appointment.create({
             lead_id,
             date_time,
             type,
             status: 'scheduled',
             notes,
         });
+
+        // AUTOMATION: Move lead to appropriate pipeline stage
+        try {
+            let targetStageTitle = null;
+
+            if (type === 'VISITA_TECNICA') {
+                targetStageTitle = 'Agendamento';
+            } else if (type === 'INSTALACAO') {
+                targetStageTitle = 'Fechamento';
+            }
+
+            if (targetStageTitle) {
+                const targetPipeline = await Pipeline.findOne({ where: { title: targetStageTitle } });
+                if (targetPipeline && lead.pipeline_id !== targetPipeline.id) {
+                    lead.pipeline_id = targetPipeline.id;
+                    await lead.save();
+                    console.log(`[AppointmentService] Lead ${lead.id} moved to '${targetStageTitle}' pipeline`);
+                }
+            }
+        } catch (error) {
+            console.error('[AppointmentService] Error updating pipeline stage:', error.message);
+            // Don't fail the request, just log error
+        }
+
+        return appointment;
     }
 
     /**
@@ -164,6 +189,23 @@ class AppointmentService {
         if (notes !== undefined) appointment.notes = notes;
 
         await appointment.save();
+
+        // AUTOMATION: If marking INSTALACAO as completed, move to 'Pós-Venda'
+        if (status === 'completed' && appointment.type === 'INSTALACAO') {
+            try {
+                const posVendaPipeline = await Pipeline.findOne({ where: { title: 'Pós-Venda' } });
+                const lead = await Lead.findByPk(appointment.lead_id);
+
+                if (posVendaPipeline && lead && lead.pipeline_id !== posVendaPipeline.id) {
+                    lead.pipeline_id = posVendaPipeline.id;
+                    await lead.save();
+                    console.log(`[AppointmentService] Lead ${lead.id} moved to 'Pós-Venda' pipeline after installation completion`);
+                }
+            } catch (error) {
+                console.error('[AppointmentService] Error updating pipeline stage (Pós-Venda):', error.message);
+            }
+        }
+
         return appointment;
     }
 

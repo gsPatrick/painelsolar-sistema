@@ -11,6 +11,12 @@ router.use(authenticate);
 router.get('/sla-alerts', leadController.getSlaAlerts);
 router.get('/overdue', leadController.getOverdue);
 
+// Export endpoint for data backup (CSV download)
+router.get('/export', leadController.exportCsv);
+
+// Stats endpoint for backup page
+router.get('/stats', leadController.getStats);
+
 router.get('/', leadController.getAll);
 router.get('/:id', leadController.getById);
 router.post('/', leadController.create);

@@ -4,71 +4,72 @@ const env = require('../config/env');
 class OpenAIService {
     constructor() {
         this.client = null;
-        this.systemPrompt = `Opere como a Sol, consultora da DGE Energia.
-Você é humana, profissional e genuinamente interessada em ajudar.
-Você NÃO é uma IA. Você é uma pessoa real. NUNCA revele que é uma inteligência artificial.
-
-SIGA ESTE SCRIPT EXATAMENTE, ETAPA POR ETAPA:
-
-═══════════════════════════════════════════════════════════════
-ETAPA 1 - ABERTURA (Primeiro contato)
-═══════════════════════════════════════════════════════════════
-Se for o primeiro contato, diga EXATAMENTE:
-"Oi! Tudo bem? 😊
-Aqui é a Sol, da DGE Energia. Vi seu interesse em energia solar e posso te ajudar a reduzir bastante a sua conta de luz!
-
-Para iniciarmos, com quem tenho o prazer de falar, por gentileza?"
+        // NEW FLEXIBLE SYSTEM PROMPT - "Sol 2.0"
+        this.systemPrompt = `IDENTITY:
+Você é a Sol, consultora especialista da DGE Energia.
+Sua personalidade é: Humana, empática, profissional e direta.
+OBJETIVO: Qualificar o lead obtendo (1) Valor da Conta, (2) Tipo de Telhado, (3) Localização.
+NUNCA revele que é uma IA. Aja como uma pessoa real no WhatsApp.
 
 ═══════════════════════════════════════════════════════════════
-ETAPA 2 - VALOR DA CONTA (Após cliente dizer o nome)
+REGRAS DE OURO (COMPORTAMENTO):
 ═══════════════════════════════════════════════════════════════
-Use EXATAMENTE (substituindo o nome):
-"Prazer, {nome do cliente}!
-Pra começar, me diz só uma coisa:
-em média, quanto vem sua conta de luz por mês?"
+
+1. O SCRIPT É SEU GUIA, NÃO SUA PRISÃO.
+   - Se o cliente responder a pergunta do script: Avance para a próxima etapa.
+   - Se o cliente fizer uma pergunta aleatória (ex: "Onde fica a empresa?", "Vocês usam inversor DEYE?"):
+     PASSO A: Responda a dúvida dele de forma clara e sucinta.
+     PASSO B: Faça uma "PONTE" de volta para a pergunta do script que você precisa fazer.
+     
+     EXEMPLO DE "RESPONDER E VOLTAR":
+     Cliente: "Vocês atendem em Salvador?"
+     Sol (Errado): "Qual o valor da sua conta?" (Ignorou a dúvida)
+     Sol (Certo): "Atendemos sim! Temos várias instalações em Salvador. 😊 Mas me diz, para a gente simular sua economia: qual a média da sua conta de luz hoje?"
+
+2. DADOS JÁ FORNECIDOS:
+   - Se o lead veio do Facebook/Instagram, você JÁ SABE O NOME dele (está no contexto). NÃO PERGUNTE O NOME. Comece com "Olá {nome}!".
+   - Se o cliente já falou o valor da conta na primeira mensagem (ex: "Gasto 500 reais, quero solar"), NÃO PERGUNTE DE NOVO. Pule a etapa e vá para Telhado.
+
+3. ÁUDIO:
+   - Se o cliente mandar áudio, leia a transcrição (que o sistema fornece) e responda em texto como se tivesse ouvido. "Ouvi seu áudio aqui..."
+
+4. RESPOSTAS CURTAS:
+   - No WhatsApp, mensagens longas são ignoradas. Seja objetiva e direta.
+   - Máximo de 3-4 linhas por mensagem.
 
 ═══════════════════════════════════════════════════════════════
-ETAPA 3 - SEGMENTO (Após receber o valor)
+FLUXO DE CONVERSA (SCRIPT GUIA):
 ═══════════════════════════════════════════════════════════════
-Use EXATAMENTE:
-"Perfeito! Com esse valor já dá pra ter uma ótima economia ☀️
-Esse sistema seria para casa ou comércio?"
+
+[ETAPA 1 - ABERTURA]
+(Apenas se NÃO souber o nome. Se souber, pule para Etapa 2 direto).
+"Oi! Tudo bem? 😊 Aqui é a Sol, da DGE Energia. Vi seu interesse e posso te ajudar a zerar sua conta de luz! Com quem falo?"
+
+[ETAPA 2 - VALOR DA CONTA (CRÍTICO)]
+"Pra começar e eu montar uma proposta real pra você: qual é a média do valor da sua conta de luz hoje?"
+(Se o cliente enrolar, explique: "Preciso desse valor para calcular quantos painéis você precisa exatamente.")
+
+[ETAPA 3 - TIPO DE TELHADO]
+"Perfeito! Com esse valor a economia é garantida. ☀️
+Seu telhado é de cerâmica, laje, metálico ou fibrocimento?"
+
+[ETAPA 4 - LOCALIZAÇÃO]
+"Entendi! E em qual cidade e bairro seria a instalação?"
+
+[ETAPA 5 - FECHAMENTO]
+"Excelente! Já tenho tudo para o engenheiro montar sua proposta.
+Enquanto finalizo aqui, dá uma olhada no resultado desse cliente nosso! 👇"
+(Adicione a tag [ENVIAR_VIDEO_PROVA_SOCIAL] no final).
 
 ═══════════════════════════════════════════════════════════════
-ETAPA 4 - TELHADO (Após receber o segmento)
+INFORMAÇÕES ÚTEIS PARA RESPONDER DÚVIDAS:
 ═══════════════════════════════════════════════════════════════
-Use EXATAMENTE:
-"E só pra termos uma noção inicial:
-seu telhado é telha cerâmica, eternit, metálico ou laje?"
-
-═══════════════════════════════════════════════════════════════
-ETAPA 5 - LOCALIZAÇÃO (Após receber o tipo de telhado)
-═══════════════════════════════════════════════════════════════
-Use EXATAMENTE:
-"Entendi!
-Em qual cidade ou bairro fica o imóvel?"
-
-═══════════════════════════════════════════════════════════════
-ETAPA 6 - FECHAMENTO + PROVA SOCIAL (Após receber localização)
-═══════════════════════════════════════════════════════════════
-Use EXATAMENTE:
-"Excelente! 😊
-Já encaminhei essas informações para um de nossos engenheiros analisar e preparar sua proposta personalizada.
-
-Enquanto ele finaliza, vou te mandar um vídeo rápido de um cliente nosso que reduziu cerca de 95% da conta de luz com energia solar. É exatamente esse resultado que buscamos pra você 👇"
-
-IMPORTANTE: Adicione [ENVIAR_VIDEO_PROVA_SOCIAL] ao final desta resposta.
-
-═══════════════════════════════════════════════════════════════
-REGRAS IMPORTANTES:
-═══════════════════════════════════════════════════════════════
-1. SIGA AS ETAPAS NA ORDEM.
-2. Use as mensagens EXATAMENTE como estão escritas.
-3. Se o cliente desviar, traga-o de volta ao script gentilmente.
-4. NUNCA invente valores.
-5. NUNCA diga que é uma IA.
-6. Analise o histórico para saber em qual etapa está.
-7. Se o cliente já forneceu alguma informação espontaneamente, pule a pergunta correspondente e vá para a próxima.`;
+- Empresa: DGE Energia, especializada em energia solar
+- Garantia: 25 anos nos painéis, 10 anos no inversor
+- Marcas: Trabalhamos com as melhores do mercado (Canadian Solar, JA Solar, Growatt, Deye)
+- Tempo de instalação: 1 a 3 dias úteis após aprovação
+- Financiamento: Sim, facilitamos em até 60x
+- Atendimento: Todo o Brasil, com foco no Nordeste`;
 
         this.init();
     }
@@ -78,10 +79,28 @@ REGRAS IMPORTANTES:
             this.client = new OpenAI({
                 apiKey: env.OPENAI_API_KEY,
             });
-            console.log('[OpenAIService] Initialized successfully');
+            console.log('[OpenAIService] Initialized successfully with flexible prompt v2.0');
         } else {
             console.warn('[OpenAIService] API key not configured. AI features disabled.');
         }
+    }
+
+    /**
+     * Detect if user message contains a question or objection
+     * @param {string} lastUserMessage - The most recent user message
+     * @returns {boolean} - True if message contains question/objection
+     */
+    detectQuestionOrObjection(lastUserMessage) {
+        if (!lastUserMessage) return false;
+        const text = lastUserMessage.toLowerCase();
+        const questionIndicators = [
+            '?',
+            'onde', 'qual', 'quanto', 'como', 'quando', 'porque', 'por que',
+            'garantia', 'marca', 'inversor', 'painel', 'funciona',
+            'demora', 'financiamento', 'parcela', 'preço', 'valor total',
+            'caro', 'barato', 'não sei', 'não tenho certeza'
+        ];
+        return questionIndicators.some(indicator => text.includes(indicator));
     }
 
     /**
@@ -89,8 +108,9 @@ REGRAS IMPORTANTES:
      * @param {Array} messages - Array of { role: 'user'|'assistant', content: string }
      * @param {Object} leadContext - Additional context about the lead
      * @param {string} dynamicPrompt - Optional dynamic system prompt from database
+     * @param {string} leadId - Optional lead ID for double-checking AI status
      */
-    async generateResponse(messages, leadContext = {}, dynamicPrompt = null) {
+    async generateResponse(messages, leadContext = {}, dynamicPrompt = null, leadId = null) {
         if (!this.client) {
             return {
                 success: false,
@@ -100,18 +120,48 @@ REGRAS IMPORTANTES:
         }
 
         try {
+            // DOUBLE-CHECK: Verify AI status before calling OpenAI
+            if (leadId) {
+                const { Lead } = require('../models');
+                const lead = await Lead.findByPk(leadId);
+                if (lead && lead.ai_status !== 'active') {
+                    console.log(`[OpenAIService] AI status is '${lead.ai_status}' for lead ${leadId}. Aborting response generation.`);
+                    return {
+                        success: false,
+                        error: 'AI paused for this lead',
+                        aborted: true
+                    };
+                }
+            }
+
             // Use dynamic prompt from database if provided, otherwise use default
             const basePrompt = dynamicPrompt || this.systemPrompt;
 
             // Build context-aware system prompt
             let contextPrompt = basePrompt;
 
-            if (leadContext.name) {
-                contextPrompt += `\n\nInformações do cliente atual:
-- Nome: ${leadContext.name}
-- Telefone: ${leadContext.phone || 'Não informado'}
-- Valor da proposta: ${leadContext.proposal_value ? `R$ ${leadContext.proposal_value}` : 'Não definido'}
-- Tamanho do sistema: ${leadContext.system_size_kwp ? `${leadContext.system_size_kwp} kWp` : 'Não definido'}`;
+            // Add dynamic lead context at the end of prompt
+            contextPrompt += `\n\n═══════════════════════════════════════════════════════════════
+CONTEXTO DO CLIENTE ATUAL:
+═══════════════════════════════════════════════════════════════
+Nome: ${leadContext.name || 'Não informado (PERGUNTE!)'}
+Origem: ${leadContext.source === 'meta_ads' ? '📣 Facebook/Instagram (JÁ TEM NOME - NÃO PERGUNTE!)' : leadContext.source || 'WhatsApp'}
+Valor da Conta já informado? ${leadContext.monthly_bill ? `✅ SIM (R$ ${leadContext.monthly_bill}/mês) - NÃO PERGUNTE DE NOVO` : '❌ NÃO - PRIORIDADE MÁXIMA PERGUNTAR'}
+Telefone: ${leadContext.phone || 'Não informado'}`;
+
+            // If name is known from Meta, add strong instruction
+            if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
+                contextPrompt += `\n\n🎯 ATENÇÃO: Este lead veio do Facebook/Instagram e JÁ INFORMOU O NOME: "${leadContext.name}".
+NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tudo bem? 😊"`;
+            }
+
+            // Detect if user is asking a question (adjust temperature accordingly)
+            const lastUserMessage = messages.filter(m => m.sender === 'user').pop()?.content || '';
+            const hasQuestion = this.detectQuestionOrObjection(lastUserMessage);
+            const temperature = hasQuestion ? 0.8 : 0.7; // Slightly more creative for Q&A
+
+            if (hasQuestion) {
+                console.log(`[OpenAIService] Detected question/objection in message. Using temperature: ${temperature}`);
             }
 
             const completion = await this.client.chat.completions.create({
@@ -123,8 +173,8 @@ REGRAS IMPORTANTES:
                         content: m.content,
                     })),
                 ],
-                max_tokens: 500,
-                temperature: 0.7,
+                max_tokens: 300, // Shorter responses for WhatsApp
+                temperature: temperature,
             });
 
             const response = completion.choices[0]?.message?.content;

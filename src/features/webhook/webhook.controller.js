@@ -44,9 +44,9 @@ class WebhookController {
             // Extract sender name
             const senderName = payload.senderName || payload.notifyName || payload.name || `WhatsApp ${phone}`;
 
-            // Process incoming message
+            // Process incoming message (pass io for socket emissions)
             const audioUrl = messageData.type === 'audio' ? messageData.audioUrl : null;
-            await this.processIncomingMessage(phone, message, senderName, chatLid, audioUrl);
+            await this.processIncomingMessage(phone, message, senderName, chatLid, audioUrl, req.app.get('io'));
 
             res.status(200).json({ message: 'Processed successfully' });
         } catch (error) {
@@ -143,7 +143,7 @@ class WebhookController {
     /**
      * Process incoming WhatsApp message
      */
-    async processIncomingMessage(phone, messageText, senderName, chatLid, audioUrl = null) {
+    async processIncomingMessage(phone, messageText, senderName, chatLid, audioUrl = null, io = null) {
         // ... (preserving logic) ...
         console.log(`[Webhook] Processing message from ${phone}: ${messageText}`);
 
@@ -199,6 +199,19 @@ class WebhookController {
             isNewLead = true; // Flag to prevent immediate transition
 
             console.log(`[Webhook] Created new lead: ${lead.id} (phone: ${actualPhone || 'LID only'}, LID: ${lidValue}) in pipeline: ${targetPipeline.title}`);
+
+            // SOCKET: Emit new_lead event for real-time Kanban updates
+            if (io) {
+                io.emit('new_lead', {
+                    id: lead.id,
+                    name: lead.name,
+                    phone: lead.phone,
+                    source: lead.source,
+                    pipeline_id: lead.pipeline_id,
+                    last_interaction_at: lead.last_interaction_at,
+                    createdAt: lead.createdAt
+                });
+            }
         } else if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
             lead.name = senderName;
             await lead.save();
@@ -305,13 +318,15 @@ class WebhookController {
         // Reverse to get chronological order
         const conversationHistory = recentMessages.reverse();
 
-        // Generate AI response (pass dynamic prompt if available)
+        // Generate AI response (pass dynamic prompt if available + leadId for double-check)
         const aiResponse = await openAIService.generateResponse(conversationHistory, {
             name: lead.name,
             phone: lead.phone,
+            source: lead.source, // For Meta lead handling
+            monthly_bill: lead.monthly_bill, // For priority injection
             proposal_value: lead.proposal_value,
             system_size_kwp: lead.system_size_kwp,
-        }, dynamicPrompt);
+        }, dynamicPrompt, lead.id);
 
         if (aiResponse.success && aiResponse.message) {
             console.log('[Webhook Debug] AI Raw Response:', aiResponse.message);
@@ -345,26 +360,26 @@ class WebhookController {
             console.log(`[Webhook] AI response sent to ${phone}`);
 
             // Send video if tag was present AND not already sent
-            // We use meta_campaign_data to store this flag without changing schema
+            // FIX: Mark as sent BEFORE sending to prevent race condition duplicates
             const campaignData = lead.meta_campaign_data || {};
 
             if (shouldSendVideo && !campaignData.social_proof_video_sent) {
                 const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
                 if (videoUrl) {
+                    // ATOMIC: Mark as sent BEFORE sending to prevent duplicates
+                    campaignData.social_proof_video_sent = true;
+                    lead.meta_campaign_data = campaignData;
+                    lead.changed('meta_campaign_data', true);
+                    await lead.save();
+                    console.log(`[Webhook] Video flag set for ${phone} - sending video...`);
+
                     await whatsAppService.sendVideo(
                         phone,
                         videoUrl,
                         '👆 Confira o depoimento de um dos nossos clientes!',
                         { delayTyping: 2 }
                     );
-                    console.log(`[Webhook] Social proof video sent to ${phone}`);
-
-                    // Mark as sent
-                    campaignData.social_proof_video_sent = true;
-                    lead.meta_campaign_data = campaignData;
-                    // Force update for JSONB changes
-                    lead.changed('meta_campaign_data', true);
-                    await lead.save();
+                    console.log(`[Webhook] ✅ Social proof video sent to ${phone}`);
                 } else {
                     console.warn('[Webhook] PROVA_SOCIAL_VIDEO_URL not configured. Video not sent.');
                 }
@@ -554,6 +569,10 @@ class WebhookController {
         }
 
         if (lead) {
+            // Update name if current name is generic and we have a better one
+            if ((lead.name === 'Meta Lead' || lead.name === 'Novo Lead' || lead.name === 'Sem Nome') && leadBasicData.name !== 'Meta Lead') {
+                lead.name = leadBasicData.name;
+            }
             lead.last_interaction_at = new Date();
             await lead.save();
             console.log(`[Meta] Lead existente atualizado: ${lead.id}`);
@@ -601,22 +620,21 @@ class WebhookController {
 
                     // Video in background (if needed)
                     // We use meta_campaign_data to store this flag
+                    // FIX: Mark video as sent BEFORE sending to prevent race condition duplicates
                     const campaignData = lead.meta_campaign_data || {};
 
                     if (shouldSendVideo && !campaignData.social_proof_video_sent) {
                         const videoUrl = process.env.PROVA_SOCIAL_VIDEO_URL;
                         if (videoUrl) {
+                            // ATOMIC: Mark as sent BEFORE sending to prevent duplicates
+                            campaignData.social_proof_video_sent = true;
+                            lead.meta_campaign_data = campaignData;
+                            lead.changed('meta_campaign_data', true);
+                            await lead.save();
+                            console.log(`[Meta] Video flag set for ${lead.phone} - sending video...`);
+
                             whatsAppService.sendVideo(lead.phone, videoUrl, '👆 Confira o depoimento!', { delayTyping: 2 })
-                                .then(async () => {
-                                    console.log(`[Meta] Video sent to ${lead.phone}`);
-                                    // Reload lead to ensure we don't overwrite concurrent changes
-                                    await lead.reload();
-                                    const currentData = lead.meta_campaign_data || {};
-                                    currentData.social_proof_video_sent = true;
-                                    lead.meta_campaign_data = currentData;
-                                    lead.changed('meta_campaign_data', true);
-                                    await lead.save();
-                                })
+                                .then(() => console.log(`[Meta] ✅ Video sent to ${lead.phone}`))
                                 .catch(e => console.warn('[Meta] Video send error:', e.message));
                         }
                     }

@@ -207,30 +207,45 @@ class MetaService {
 
         for (const field of fieldData) {
             const value = field.values?.[0] || null;
+            if (!value) continue;
 
-            // Map common field names to our Lead model
-            switch (field.name) {
-                case 'full_name':
-                case 'nome':
-                case 'name':
-                    result.name = value;
-                    break;
-                case 'phone_number':
-                case 'telefone':
-                case 'phone':
-                    result.phone = this.normalizePhone(value);
-                    break;
-                case 'email':
-                    result.email = value;
-                    break;
-                case 'city':
-                case 'cidade':
-                    result.city = value;
-                    break;
-                default:
-                    // Store any other fields in a custom object
-                    if (!result.custom_fields) result.custom_fields = {};
-                    result.custom_fields[field.name] = value;
+            const fieldName = field.name.toLowerCase();
+
+            // Name detection
+            if (['full_name', 'fullname', 'nome', 'name', 'nome_completo', 'nome_da_pessoa'].includes(fieldName) ||
+                fieldName.includes('nome') || fieldName.includes('name')) {
+                result.name = value;
+            }
+
+            // Phone detection (often 'phone_number', 'telefone', 'whatsapp', 'celular')
+            else if (['phone_number', 'phone', 'telefone', 'whatsapp', 'celular', 'contato'].includes(fieldName) ||
+                fieldName.includes('phone') || fieldName.includes('tel')) {
+                result.phone = this.normalizePhone(value);
+            }
+
+            // Email detection
+            else if (['email', 'e-mail', 'correio_eletronico'].includes(fieldName) || fieldName.includes('mail')) {
+                result.email = value;
+            }
+
+            // City detection
+            else if (['city', 'cidade', 'municipio'].includes(fieldName) || fieldName.includes('city') || fieldName.includes('cidade')) {
+                result.city = value;
+            }
+
+            // Generic fallback for custom fields
+            else {
+                if (!result.custom_fields) result.custom_fields = {};
+                result.custom_fields[field.name] = value;
+            }
+        }
+
+        // Fallback: if no name found but we have custom fields, check if any value LOOKS like a name 
+        // (often it's the first question "q1" or "pergunta_1")
+        if (!result.name && result.custom_fields) {
+            const fallbackKey = Object.keys(result.custom_fields)[0];
+            if (fallbackKey) {
+                result.name = result.custom_fields[fallbackKey];
             }
         }
 
