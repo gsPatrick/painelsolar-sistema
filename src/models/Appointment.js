@@ -16,7 +16,7 @@ const Appointment = sequelize.define('Appointment', {
         allowNull: false,
     },
     type: {
-        type: DataTypes.ENUM('VISITA_TECNICA', 'INSTALACAO'),
+        type: DataTypes.ENUM('VISITA_TECNICA', 'INSTALACAO', 'LEMBRETE'),
         allowNull: false,
     },
     status: {
