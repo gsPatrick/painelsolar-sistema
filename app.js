@@ -221,10 +221,10 @@ Por favor, verifique e tome uma ação!`;
     }
 });
 
-// Follow-up Job - runs every 2 hours during business hours (8AM-8PM)
+// Follow-up Job - runs every 15 minutes during business hours (8AM-8PM)
 const followUpService = require('./src/services/FollowUpService');
 
-cron.schedule('0 8,10,12,14,16,18,20 * * *', async () => {
+cron.schedule('*/15 8-20 * * *', async () => {
     console.log('[Cron] Running follow-up job...');
 
     try {
@@ -362,6 +362,14 @@ async function startServer() {
             console.log(`📚 API available at http://localhost:${PORT}/api`);
             console.log(`🏥 Health check at http://localhost:${PORT}/health`);
             console.log(`🔌 Socket.io enabled`);
+
+            // Execute Follow-up Job on Startup to process overdue leads
+            setTimeout(() => {
+                console.log('🔄 [Startup] Processing backlog of leads for follow-up...');
+                followUpService.runFollowupJob()
+                    .then(res => console.log(`✅ [Startup] Backlog processed: ${res.sent} messages sent to ${res.total} leads.`))
+                    .catch(e => console.error('❌ [Startup] Error processing backlog:', e.message));
+            }, 10000); // 10s delay to ensure full startup
         });
     } catch (error) {
         console.error('❌ Unable to start server:', error.message);
