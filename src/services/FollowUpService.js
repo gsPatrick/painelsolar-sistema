@@ -1,46 +1,20 @@
-const { Lead, Message, SystemSettings, FollowUpRule } = require('../models');
+const { Lead, Message, FollowUpRule } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 
 class FollowUpService {
     constructor() {
-        this.defaultDelayHours = 24;
-        this.maxFollowups = 3;
-    }
-
-    /**
-     * Get global follow-up settings from SystemSettings
-     */
-    async getSettings() {
-        try {
-            const [delayHours, defaultMessage] = await Promise.all([
-                SystemSettings.findOne({ where: { key: 'followup_delay_hours' } }),
-                SystemSettings.findOne({ where: { key: 'followup_message' } }),
-            ]);
-
-            return {
-                delayHours: delayHours ? parseInt(delayHours.value) : this.defaultDelayHours,
-                defaultMessage: defaultMessage?.value || 'Olá! Tudo bem? 😊 Passando para saber se conseguiu avaliar nossa proposta. Ficou com alguma dúvida? Estou à disposição!',
-            };
-        } catch (error) {
-            console.error('[FollowUpService] Error getting settings:', error.message);
-            return {
-                delayHours: this.defaultDelayHours,
-                defaultMessage: 'Olá! Tudo bem? Passando para saber se tem alguma dúvida. Estou à disposição!',
-            };
-        }
     }
 
     /**
      * Find leads that need follow-up
      * Criteria:
      * - AI status is 'active'
-     * - Last interaction is older than delay hours
-     * - Follow-up count < max
+     * - Last interaction is older than delay hours defined in Rule
      * - Last message was from AI (no response from user)
      */
     async getLeadsNeedingFollowup() {
-        const settings = await this.getSettings();
+        // Fetch all active rules
         const rules = await FollowUpRule.findAll({
             where: { active: true },
             order: [['step_number', 'ASC']]
@@ -55,7 +29,6 @@ class FollowUpService {
 
         try {
             // Find all potential leads (Active & AI Active)
-            // We can't filter by time in SQL easily because delay depends on pipeline rule
             const leads = await Lead.findAll({
                 where: {
                     status: 'active',
@@ -77,34 +50,24 @@ class FollowUpService {
 
                 // Check for Pipeline Specific Rules
                 const pipelineRules = rulesByPipeline[lead.pipeline_id];
-                let ruleToApply = null;
-                let delayHours = settings.delayHours; // Default Global
 
-                if (pipelineRules && pipelineRules.length > 0) {
-                    // Find rule for next step (current count + 1)
-                    // e.g. Count 0 -> Step 1. Count 1 -> Step 2.
-                    const nextStep = (lead.followup_count || 0) + 1;
-                    ruleToApply = pipelineRules.find(r => r.step_number === nextStep);
+                // If no rules for this pipeline, SKIP completely. No default fallback.
+                if (!pipelineRules || pipelineRules.length === 0) continue;
 
-                    if (ruleToApply) {
-                        delayHours = ruleToApply.delay_hours;
-                    } else {
-                        // No rule for this step (e.g. exceeded max rules) -> Stop or Use Default?
-                        // If we have rules for this pipeline, usually we follow them strictly.
-                        // If step > max rules, we do nothing (end of sequence).
-                        continue;
-                    }
-                } else {
-                    // No rules for this pipeline -> Use Global Logic
-                    if ((lead.followup_count || 0) >= this.maxFollowups) continue;
-                }
+                // Determine next step
+                const nextStep = (lead.followup_count || 0) + 1;
+                const ruleToApply = pipelineRules.find(r => r.step_number === nextStep);
 
-                // Check time since last interaction
-                const hoursSinceLastInteraction = (new Date() - new Date(lead.last_interaction_at)) / (1000 * 60 * 60);
+                // If no rule for the next step, SKIP. (End of sequence)
+                if (!ruleToApply) continue;
 
-                if (hoursSinceLastInteraction >= delayHours) {
-                    // Attach rule to lead for sender usage
-                    if (ruleToApply) lead.nextRule = ruleToApply;
+                // Check delay
+                const delayMs = ruleToApply.delay_hours * 60 * 60 * 1000;
+                const timeSinceLastInteraction = new Date() - new Date(lead.last_interaction_at);
+
+                if (timeSinceLastInteraction >= delayMs) {
+                    // Lead needs follow-up!
+                    lead.nextRule = ruleToApply; // Attach rule for processing
                     leadsNeedingFollowup.push(lead);
                 }
             }
@@ -154,27 +117,34 @@ class FollowUpService {
         }
     }
 
+    async getLeadsNeedingApproval() {
+        return [];
+    }
+
     /**
      * Send follow-up message to a lead
      */
     async sendFollowup(lead) {
-        const settings = await this.getSettings();
+        // Strict Mode: Only send if rule is attached
+        if (!lead.nextRule) {
+            console.log(`[FollowUpService] Lead ${lead.id} has no rule attached. Skipping.`);
+            return false;
+        }
 
-        // Use Rule message if available, else Custom, else Global Default
-        let messageTemplate = settings.defaultMessage;
+        let messageTemplate = lead.nextRule.message_template;
 
-        if (lead.nextRule && lead.nextRule.message_template) {
-            messageTemplate = lead.nextRule.message_template;
-        } else if (lead.custom_followup_message) {
-            messageTemplate = lead.custom_followup_message;
+        if (!messageTemplate) {
+            console.error(`[FollowUpService] Rule ${lead.nextRule.id} has no message template.`);
+            return false;
         }
 
         // Personalize message with lead name
-        const personalizedMessage = messageTemplate.replace(/{nome}/gi, lead.name.split(' ')[0]); // First name only usually better
+        const firstName = lead.name ? lead.name.split(' ')[0] : 'Cliente';
+        const personalizedMessage = messageTemplate.replace(/{nome}/gi, firstName);
 
         try {
             // Send via WhatsApp
-            await whatsAppService.sendMessage(lead.phone, personalizedMessage, 2);
+            await whatsAppService.sendText(lead.phone, personalizedMessage);
 
             // Save message to history
             await Message.create({
@@ -185,12 +155,13 @@ class FollowUpService {
             });
 
             // Update lead follow-up tracking
-            lead.last_followup_at = new Date();
-            lead.followup_count = (lead.followup_count || 0) + 1;
-            lead.last_interaction_at = new Date();
-            await lead.save();
+            await lead.update({
+                last_interaction_at: new Date(), // Reset timer
+                followup_count: (lead.followup_count || 0) + 1,
+                last_followup_rule_id: lead.nextRule.id
+            });
 
-            console.log(`[FollowUpService] Follow-up sent to ${lead.name} using Rule: ${lead.nextRule ? 'Step ' + lead.nextRule.step_number : 'Global'}`);
+            console.log(`[FollowUpService] Follow-up sent to ${lead.name} using Rule Step ${lead.nextRule.step_number}`);
             return true;
         } catch (error) {
             console.error(`[FollowUpService] Error sending follow-up to ${lead.phone}:`, error.message);
