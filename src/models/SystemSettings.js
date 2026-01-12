@@ -136,6 +136,37 @@ REGRAS IMPORTANTES:
         description: 'Hora de término do horário comercial',
         value: '20',
     },
+    // Reminder Settings
+    {
+        key: 'reminder_enabled',
+        type: 'boolean',
+        description: 'Ativar lembretes de agendamento',
+        value: 'true',
+    },
+    {
+        key: 'reminder_1day_enabled',
+        type: 'boolean',
+        description: 'Ativar lembrete 1 dia antes',
+        value: 'true',
+    },
+    {
+        key: 'reminder_2hours_enabled',
+        type: 'boolean',
+        description: 'Ativar lembrete 2 horas antes',
+        value: 'true',
+    },
+    {
+        key: 'reminder_1day_message',
+        type: 'string',
+        description: 'Mensagem do lembrete 1 dia antes',
+        value: '📅 *Lembrete de Agendamento*\n\nOlá, {nome}! Passando para lembrar que você tem uma *{tipo}* agendada para *amanhã ({data})* às *{hora}*.\n\nCaso precise reagendar, é só me avisar! 😊\n\n_DGE Energia_',
+    },
+    {
+        key: 'reminder_2hours_message',
+        type: 'string',
+        description: 'Mensagem do lembrete 2 horas antes',
+        value: '⏰ *Lembrete: Faltam 2 horas!*\n\nOlá, {nome}! Sua *{tipo}* está marcada para *hoje às {hora}*.\n\nNos vemos em breve! 🔆\n\n_DGE Energia_',
+    },
 ];
 
 // Seed default settings

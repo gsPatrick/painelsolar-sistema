@@ -90,6 +90,44 @@ const Lead = sequelize.define('Lead', {
         defaultValue: 0,
         comment: 'Number of follow-ups sent to this lead',
     },
+    // Qualification fields extracted by AI
+    monthly_bill: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+        comment: 'Monthly electricity bill value',
+    },
+    segment: {
+        type: DataTypes.ENUM('residencial', 'comercial', 'rural', 'industrial'),
+        allowNull: true,
+        comment: 'Casa, comércio, rural ou industrial',
+    },
+    roof_type: {
+        type: DataTypes.ENUM('ceramica', 'eternit', 'metalico', 'laje', 'fibrocimento'),
+        allowNull: true,
+        comment: 'Tipo de telhado',
+    },
+    equipment_increase: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Equipamento que vai aumentar consumo (ar-condicionado, etc)',
+    },
+    city: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    state: {
+        type: DataTypes.STRING(2),
+        allowNull: true,
+    },
+    neighborhood: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
+    qualification_complete: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        comment: 'True when all essential info is collected',
+    },
     deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,

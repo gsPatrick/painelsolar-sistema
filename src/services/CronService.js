@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { Lead, Pipeline } = require('../models');
+const { Lead, Pipeline, Appointment, SystemSettings } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 
@@ -20,6 +20,9 @@ class CronService {
         // SLA Alert Job - Runs every hour
         this.scheduleSLAAlerts();
 
+        // Appointment Reminder Job - Runs every 30 minutes
+        this.scheduleAppointmentReminders();
+
         console.log('[CronService] All jobs scheduled.');
     }
 
@@ -36,6 +39,124 @@ class CronService {
 
         this.jobs.push(job);
         console.log('[CronService] SLA Alert job scheduled (hourly)');
+    }
+
+    /**
+     * Appointment Reminder Job
+     * Sends reminders 1 day before and 2 hours before appointments
+     */
+    scheduleAppointmentReminders() {
+        // Run every 30 minutes
+        const job = cron.schedule('*/30 * * * *', async () => {
+            console.log('[CronService] Running appointment reminder check...');
+            await this.checkAppointmentReminders();
+        });
+
+        this.jobs.push(job);
+        console.log('[CronService] Appointment Reminder job scheduled (every 30 min)');
+    }
+
+    /**
+     * Check for appointments that need reminders
+     */
+    async checkAppointmentReminders() {
+        try {
+            // Load reminder settings from database
+            const reminderEnabled = await SystemSettings.findOne({ where: { key: 'reminder_enabled' } });
+            if (!reminderEnabled || reminderEnabled.value !== 'true') {
+                console.log('[CronService] Reminders are disabled');
+                return;
+            }
+
+            const reminder1dayEnabled = await SystemSettings.findOne({ where: { key: 'reminder_1day_enabled' } });
+            const reminder2hoursEnabled = await SystemSettings.findOne({ where: { key: 'reminder_2hours_enabled' } });
+            const reminder1dayMessage = await SystemSettings.findOne({ where: { key: 'reminder_1day_message' } });
+            const reminder2hoursMessage = await SystemSettings.findOne({ where: { key: 'reminder_2hours_message' } });
+
+            const now = new Date();
+
+            // Check for appointments needing 1-day reminder (24-25 hours away)
+            if (reminder1dayEnabled?.value === 'true') {
+                const oneDayMin = new Date(now);
+                oneDayMin.setHours(oneDayMin.getHours() + 23);
+                const oneDayMax = new Date(now);
+                oneDayMax.setHours(oneDayMax.getHours() + 25);
+
+                const oneDayAppointments = await Appointment.findAll({
+                    where: {
+                        status: 'scheduled',
+                        reminded_1day: false,
+                        date_time: { [Op.between]: [oneDayMin, oneDayMax] }
+                    },
+                    include: [{ model: Lead, as: 'lead' }]
+                });
+
+                for (const apt of oneDayAppointments) {
+                    if (apt.lead?.phone) {
+                        const typeLabel = apt.type === 'VISITA_TECNICA' ? 'Visita Técnica' : 'Instalação';
+                        const dateStr = new Date(apt.date_time).toLocaleDateString('pt-BR');
+                        const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                        // Use custom message or default
+                        let message = reminder1dayMessage?.value || '📅 *Lembrete de Agendamento*\n\nOlá, {nome}! Sua *{tipo}* está agendada para *amanhã ({data})* às *{hora}*.';
+                        message = message
+                            .replace(/{nome}/g, apt.lead.name)
+                            .replace(/{tipo}/g, typeLabel)
+                            .replace(/{data}/g, dateStr)
+                            .replace(/{hora}/g, timeStr);
+
+                        await whatsAppService.sendText(apt.lead.phone, message);
+                        await apt.update({ reminded_1day: true });
+                        console.log(`[CronService] 1-day reminder sent for appointment ${apt.id}`);
+                    }
+                }
+            }
+
+            // Check for appointments needing 2-hour reminder (1.5 to 2.5 hours away)
+            if (reminder2hoursEnabled?.value === 'true') {
+                const twoHoursMin = new Date(now);
+                twoHoursMin.setMinutes(twoHoursMin.getMinutes() + 90);
+                const twoHoursMax = new Date(now);
+                twoHoursMax.setMinutes(twoHoursMax.getMinutes() + 150);
+
+                const twoHourAppointments = await Appointment.findAll({
+                    where: {
+                        status: 'scheduled',
+                        reminded_2hours: false,
+                        date_time: { [Op.between]: [twoHoursMin, twoHoursMax] }
+                    },
+                    include: [{ model: Lead, as: 'lead' }]
+                });
+
+                for (const apt of twoHourAppointments) {
+                    if (apt.lead?.phone) {
+                        const typeLabel = apt.type === 'VISITA_TECNICA' ? 'Visita Técnica' : 'Instalação';
+                        const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                        // Use custom message or default
+                        let message = reminder2hoursMessage?.value || '⏰ *Lembrete: Faltam 2 horas!*\n\nOlá, {nome}! Sua *{tipo}* está marcada para *hoje às {hora}*.';
+                        message = message
+                            .replace(/{nome}/g, apt.lead.name)
+                            .replace(/{tipo}/g, typeLabel)
+                            .replace(/{hora}/g, timeStr);
+
+                        await whatsAppService.sendText(apt.lead.phone, message);
+                        await apt.update({ reminded_2hours: true });
+
+                        // Also send admin alert
+                        const adminMsg = `🔔 *Lembrete de Agendamento*\n\n📍 ${typeLabel} em 2 horas\n👤 ${apt.lead.name}\n📞 ${apt.lead.phone}\n⏰ ${timeStr}`;
+                        await whatsAppService.sendAdminAlert(adminMsg);
+
+                        console.log(`[CronService] 2-hour reminder sent for appointment ${apt.id}`);
+                    }
+                }
+            }
+
+            console.log('[CronService] Reminder check complete');
+
+        } catch (error) {
+            console.error('[CronService] Error checking appointment reminders:', error);
+        }
     }
 
     /**
@@ -115,6 +236,14 @@ Por favor, verifique e tome uma ação!`;
     }
 
     /**
+     * Manually trigger reminder check (for testing)
+     */
+    async runReminderCheckNow() {
+        console.log('[CronService] Manually triggering reminder check...');
+        await this.checkAppointmentReminders();
+    }
+
+    /**
      * Stop all scheduled jobs
      */
     stopAll() {
@@ -124,3 +253,4 @@ Por favor, verifique e tome uma ação!`;
 }
 
 module.exports = new CronService();
+

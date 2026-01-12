@@ -394,19 +394,57 @@ class WebhookController {
         // Try to extract lead info from message
         const extractedInfo = await openAIService.extractLeadInfo(messageText);
         if (extractedInfo.success && extractedInfo.data) {
-            const { name, monthly_bill, city, state } = extractedInfo.data;
+            const { name, monthly_bill, segment, roof_type, equipment_increase, city, state, neighborhood } = extractedInfo.data;
+
+            let hasUpdates = false;
 
             // Update lead info if found
             if (name && lead.name.startsWith('WhatsApp')) {
                 lead.name = name;
+                hasUpdates = true;
             }
-            if (monthly_bill) lead.monthly_bill = monthly_bill;
-            if (city) lead.city = city;
-            if (state) lead.state = state;
+            if (monthly_bill && !lead.monthly_bill) {
+                lead.monthly_bill = parseFloat(monthly_bill);
+                hasUpdates = true;
+            }
+            if (segment && !lead.segment) {
+                lead.segment = segment;
+                hasUpdates = true;
+            }
+            if (roof_type && !lead.roof_type) {
+                lead.roof_type = roof_type;
+                hasUpdates = true;
+            }
+            if (equipment_increase && !lead.equipment_increase) {
+                lead.equipment_increase = equipment_increase;
+                hasUpdates = true;
+            }
+            if (city && !lead.city) {
+                lead.city = city;
+                hasUpdates = true;
+            }
+            if (state && !lead.state) {
+                lead.state = state;
+                hasUpdates = true;
+            }
+            if (neighborhood && !lead.neighborhood) {
+                lead.neighborhood = neighborhood;
+                hasUpdates = true;
+            }
 
-            await lead.save();
+            // Check if qualification is complete (essential: monthly_bill + city)
+            if (lead.monthly_bill && lead.city && !lead.qualification_complete) {
+                lead.qualification_complete = true;
+                hasUpdates = true;
+                console.log(`[Webhook] ✅ Lead ${lead.id} qualification complete!`);
+            }
 
-            // Check if lead has all required info to move to "Enviar Proposta"
+            if (hasUpdates) {
+                await lead.save();
+                console.log(`[Webhook] 📝 Lead ${lead.id} updated with extracted info`);
+            }
+
+            // Check if lead has all required info to move to next stage + notify admins
             await this.checkLeadCompletion(lead, phone);
         }
     }

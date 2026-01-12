@@ -28,6 +28,17 @@ const Appointment = sequelize.define('Appointment', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    // Reminder tracking fields
+    reminded_1day: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+    },
+    reminded_2hours: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+    },
 }, {
     tableName: 'appointments',
 });
