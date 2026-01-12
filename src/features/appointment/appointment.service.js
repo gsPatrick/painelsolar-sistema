@@ -62,6 +62,14 @@ class AppointmentService {
             throw new Error('Lead não encontrado');
         }
 
+        // Check for double booking (Strict Same Time Rule)
+        const isDoubleBooked = await this.checkDoubleBooking(date_time);
+        if (isDoubleBooked) {
+            const error = new Error('Horário Indisponível: Já existe um agendamento neste horário exato.');
+            error.statusCode = 409;
+            throw error;
+        }
+
         // Check for conflict: VISITA_TECNICA blocked if INSTALACAO exists on same day
         if (type === 'VISITA_TECNICA') {
             const hasConflict = await this.checkConflict(date_time, 'INSTALACAO');
@@ -165,6 +173,25 @@ class AppointmentService {
     }
 
     /**
+     * Check if specific time slot is occupied (prevent double booking)
+     * @param {Date} dateTime
+     * @param {number} excludeId - ID to exclude (for updates)
+     */
+    async checkDoubleBooking(dateTime, excludeId = null) {
+        const where = {
+            date_time: dateTime,
+            status: { [Op.ne]: 'cancelled' }
+        };
+
+        if (excludeId) {
+            where.id = { [Op.ne]: excludeId };
+        }
+
+        const existing = await Appointment.findOne({ where });
+        return !!existing;
+    }
+
+    /**
      * Update an appointment
      */
     async update(id, data) {
@@ -174,6 +201,16 @@ class AppointmentService {
         }
 
         const { date_time, type, status, notes } = data;
+
+        // If changing time, check for double booking
+        if (date_time && new Date(date_time).getTime() !== new Date(appointment.date_time).getTime()) {
+            const isDoubleBooked = await this.checkDoubleBooking(date_time, id);
+            if (isDoubleBooked) {
+                const error = new Error('Horário Indisponível: Já existe um agendamento neste horário exato.');
+                error.statusCode = 409;
+                throw error;
+            }
+        }
 
         // If changing to VISITA_TECNICA, check for conflicts
         if (type === 'VISITA_TECNICA' && date_time) {
