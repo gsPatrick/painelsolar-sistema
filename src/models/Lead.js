@@ -99,12 +99,12 @@ const Lead = sequelize.define('Lead', {
     segment: {
         type: DataTypes.ENUM('residencial', 'comercial', 'rural', 'industrial'),
         allowNull: true,
-        comment: 'Casa, comércio, rural ou industrial',
+        // Note: Casa, comércio, rural ou industrial
     },
     roof_type: {
         type: DataTypes.ENUM('ceramica', 'eternit', 'metalico', 'laje', 'fibrocimento'),
         allowNull: true,
-        comment: 'Tipo de telhado',
+        // Note: Tipo de telhado
     },
     equipment_increase: {
         type: DataTypes.STRING(255),
