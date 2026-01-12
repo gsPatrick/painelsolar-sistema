@@ -50,6 +50,23 @@ router.delete('/rules/:id', async (req, res) => {
     }
 });
 
+/**
+ * PUT /followup/rules/:id
+ * Update an existing rule
+ */
+router.put('/rules/:id', async (req, res) => {
+    try {
+        const rule = await FollowUpRule.findByPk(req.params.id);
+        if (!rule) {
+            return res.status(404).json({ error: 'Rule not found' });
+        }
+        await rule.update(req.body);
+        res.status(200).json(rule);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 
 
 /**
