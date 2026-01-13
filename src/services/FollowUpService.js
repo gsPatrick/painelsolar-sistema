@@ -40,18 +40,31 @@ class FollowUpService {
             const leadsNeedingFollowup = [];
 
             for (const lead of leads) {
-                // Must ensure last message was from AI (user silence)
+                // Check last message to determine context
                 const lastMessage = await Message.findOne({
                     where: { lead_id: lead.id },
                     order: [['timestamp', 'DESC']],
                 });
 
-                if (!lastMessage || lastMessage.sender !== 'ai') continue;
+                // If user responded, do NOT send automated follow-up (human intervention needed)
+                if (lastMessage && lastMessage.sender !== 'ai') continue;
+
+                // Determine reference time for delay calculation
+                // If lastMessage exists (from AI), use its timestamp.
+                // If NO message exists (new lead), use lead.createdAt or updated_at.
+                let referenceTime = lead.last_interaction_at ? new Date(lead.last_interaction_at) : new Date(lead.updatedAt);
+
+                if (lastMessage) {
+                    referenceTime = new Date(lastMessage.timestamp);
+                } else if (!referenceTime || isNaN(referenceTime.getTime())) {
+                    // Fallback if dates are invalid
+                    referenceTime = new Date(lead.createdAt);
+                }
 
                 // Check for Pipeline Specific Rules
                 const pipelineRules = rulesByPipeline[lead.pipeline_id];
 
-                // If no rules for this pipeline, SKIP completely. No default fallback.
+                // If no rules for this pipeline, SKIP
                 if (!pipelineRules || pipelineRules.length === 0) continue;
 
                 // Determine next step
@@ -63,9 +76,9 @@ class FollowUpService {
 
                 // Check delay
                 const delayMs = ruleToApply.delay_hours * 60 * 60 * 1000;
-                const timeSinceLastInteraction = new Date() - new Date(lead.last_interaction_at);
+                const timeSinceReference = new Date() - referenceTime;
 
-                if (timeSinceLastInteraction >= delayMs) {
+                if (timeSinceReference >= delayMs) {
                     // Lead needs follow-up!
                     lead.nextRule = ruleToApply; // Attach rule for processing
                     leadsNeedingFollowup.push(lead);
