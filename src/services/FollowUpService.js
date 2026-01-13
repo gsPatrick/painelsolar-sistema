@@ -85,6 +85,40 @@ class FollowUpService {
                 }
             }
 
+            // [NEW] Check for generic "Delayed" leads (Manual Only)
+            // If lead was NOT added above, check if it's "old" (> 24h) and in early stages
+            // but has NO specific rule matching.
+            for (const lead of leads) {
+                // Skip if already added
+                if (leadsNeedingFollowup.find(l => l.id === lead.id)) continue;
+
+                // Check last message - if user responded, skip
+                const lastMessage = await Message.findOne({
+                    where: { lead_id: lead.id },
+                    order: [['timestamp', 'DESC']],
+                });
+                if (lastMessage && lastMessage.sender !== 'ai') continue; // User responded
+
+                let referenceTime = lead.last_interaction_at ? new Date(lead.last_interaction_at) : new Date(lead.updatedAt);
+                if (lastMessage) referenceTime = new Date(lastMessage.timestamp);
+
+                const hoursSince = (new Date() - referenceTime) / (1000 * 60 * 60);
+
+                // If > 24 hours silent and generally active pipeline
+                if (hoursSince > 24) {
+                    // Add as manual only
+                    lead.nextRule = {
+                        step_number: 'Manual',
+                        message_template: 'Olá {nome}, ainda tem interesse?', // Default or empty
+                        id: 'manual_fallback'
+                    };
+                    lead.manualOnly = true; // Flag to prevent auto-send
+                    leadsNeedingFollowup.push(lead);
+                }
+            }
+
+            return leadsNeedingFollowup;
+
             return leadsNeedingFollowup;
         } catch (error) {
             console.error('[FollowUpService] Error finding leads:', error.message);
@@ -130,9 +164,7 @@ class FollowUpService {
         }
     }
 
-    async getLeadsNeedingApproval() {
-        return [];
-    }
+
 
     /**
      * Send follow-up message to a lead
@@ -193,6 +225,9 @@ class FollowUpService {
 
         let sentCount = 0;
         for (const lead of leads) {
+            // Skip manual only leads for AUTO job
+            if (lead.manualOnly) continue;
+
             const success = await this.sendFollowup(lead);
             if (success) sentCount++;
 
