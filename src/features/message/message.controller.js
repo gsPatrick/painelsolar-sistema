@@ -167,6 +167,94 @@ const messageController = {
             console.error('[MessageController] Error in createWithMedia:', error);
             res.status(500).json({ error: 'Failed to upload and send media' });
         }
+    },
+
+    async bulkSend(req, res) {
+        try {
+            const { lead_ids, content } = req.body;
+            console.log(`[MessageController] Bulk send validation - Lead IDs type: ${typeof lead_ids}, Is Array: ${Array.isArray(lead_ids)}, Value:`, lead_ids);
+
+            if (!lead_ids || !Array.isArray(lead_ids) || lead_ids.length === 0) {
+                return res.status(400).json({ error: 'lead_ids must be a non-empty array' });
+            }
+            if (!content) {
+                return res.status(400).json({ error: 'content is required' });
+            }
+
+            const { Lead } = require('../../models');
+            const whatsAppService = require('../../services/WhatsAppService');
+
+            // Process in background to avoid timeout
+            // But for now, we'll confirm start and run logic
+            // Ideally should be a queue. For MVP, we iterate.
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // Fetch all leads first
+            const leads = await Lead.findAll({
+                where: {
+                    id: lead_ids
+                }
+            });
+
+            console.log(`[MessageController] Starting bulk send to ${leads.length} leads...`);
+
+            // Send async (don't wait for all to return response to user)
+            // But user wants feedback. Let's do a quick loop.
+            // Heavily rate limited? 
+
+            const results = [];
+
+            for (const lead of leads) {
+                try {
+                    // Personalize message
+                    const firstName = lead.name ? lead.name.split(' ')[0] : 'Cliente';
+                    const personalizedContent = content.replace(/{nome}/gi, firstName);
+
+                    // Send
+                    await whatsAppService.sendMessage(lead.phone, personalizedContent, 0); // No typing delay for bulk
+
+                    // Save to DB
+                    await messageService.create({
+                        lead_id: lead.id,
+                        content: personalizedContent,
+                        sender: req.user ? 'agent' : 'agent',
+                        timestamp: new Date()
+                    });
+
+                    // Pause AI
+                    if (lead.ai_status !== 'human_intervention') {
+                        lead.ai_status = 'human_intervention';
+                        lead.ai_paused_at = new Date();
+                        await lead.save();
+                    }
+
+                    results.push({ lead_id: lead.id, status: 'success' });
+                    successCount++;
+
+                    // Small delay to prevent block
+                    await new Promise(r => setTimeout(r, 500));
+
+                } catch (err) {
+                    console.error(`[MessageController] Bulk send failed for ${lead.phone}:`, err.message);
+                    results.push({ lead_id: lead.id, status: 'error', error: err.message });
+                    failCount++;
+                }
+            }
+
+            res.json({
+                message: 'Bulk send completed',
+                total: leads.length,
+                success: successCount,
+                failed: failCount,
+                results
+            });
+
+        } catch (error) {
+            console.error('[MessageController] Bulk send error:', error);
+            res.status(500).json({ error: 'Internal server error during bulk send' });
+        }
     }
 };
 

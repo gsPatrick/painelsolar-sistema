@@ -1,4 +1,4 @@
-const { Lead, Message, Pipeline, SystemSettings, AdminNumber } = require('../../models');
+const { Lead, Message, Pipeline, FollowUpRule, SystemSettings, AdminNumber } = require('../../models');
 const leadService = require('../lead/lead.service');
 const openAIService = require('../../services/OpenAIService');
 const whatsAppService = require('../../services/WhatsAppService');
@@ -326,6 +326,7 @@ class WebhookController {
             monthly_bill: lead.monthly_bill, // For priority injection
             proposal_value: lead.proposal_value,
             system_size_kwp: lead.system_size_kwp,
+            pipeline_title: lead.pipeline ? lead.pipeline.title : null,
         }, dynamicPrompt, lead.id);
 
         if (aiResponse.success && aiResponse.message) {
@@ -631,9 +632,15 @@ class WebhookController {
             console.log(`[Meta] 🔥 Disparando IA Sol para ${lead.phone}...`);
 
             try {
+                // Reload lead with pipeline to pass pipeline_title to AI context
+                lead = await Lead.findByPk(lead.id, {
+                    include: [{ model: Pipeline, as: 'pipeline' }]
+                });
+
                 const aiResponse = await openAIService.generateResponse([], {
                     name: lead.name,
                     phone: lead.phone,
+                    pipeline_title: lead.pipeline ? lead.pipeline.title : null,
                 });
 
                 if (aiResponse.success && aiResponse.message) {
@@ -881,7 +888,8 @@ class WebhookController {
 
                     // Check if lead already exists by leadgen_id
                     const existingByLeadgen = await Lead.findOne({
-                        where: { meta_leadgen_id: leadgenId }
+                        where: { meta_leadgen_id: leadgenId },
+                        include: [{ model: Pipeline, as: 'pipeline' }]
                     });
 
                     if (existingByLeadgen) {

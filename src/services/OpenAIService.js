@@ -1,6 +1,15 @@
 const OpenAI = require('openai');
 const env = require('../config/env');
 
+const defaultDataRecoveryPrompt = `═══════════════════════════════════════════════════════════════
+🚀 RECUPERAÇÃO DE DADOS (PRIMEIRO CONTATO):
+═══════════════════════════════════════════════════════════════
+O lead está na fase INICIAL ("Primeiro Contato") mas parou de responder ou não mandou dados.
+SEU OBJETIVO TOTAL AGORA É: Obter o valor da conta e o segmento.
+Se ele desviar do assunto, use esta abordagem:
+"Entendi! Mas para eu conseguir te passar o valor exato da economia, preciso só que você me confirme o valor médio da sua conta. Consegue me enviar agora?"
+IGNORE perguntas complexas até ter esses dados. Foco em destravar o lead.`;
+
 class OpenAIService {
     constructor() {
         this.client = null;
@@ -184,6 +193,27 @@ Telefone: ${leadContext.phone || 'Não informado'}`;
             if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
                 contextPrompt += `\n\n🎯 ATENÇÃO: Este lead veio do Facebook/Instagram e JÁ INFORMOU O NOME: "${leadContext.name}".
 NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tudo bem? 😊"`;
+            }
+
+            // [SCRIPT DE RECUPERAÇÃO DE DADOS - PRIMEIRO CONTATO]
+            // Se o lead estiver na etapa "Primeiro Contato" e faltar dados essenciais (Conta ou Segmento), force a recuperação.
+            if (leadContext.pipeline_title && leadContext.pipeline_title.toLowerCase().includes('primeiro contato')) {
+                if (!leadContext.monthly_bill || !leadContext.segment) {
+
+                    // Try to load dynamic prompt from settings
+                    let dataRecoveryPrompt = defaultDataRecoveryPrompt;
+                    try {
+                        const { SystemSettings } = require('../models');
+                        const recoverySetting = await SystemSettings.findOne({ where: { key: 'openai_data_recovery_prompt' } });
+                        if (recoverySetting && recoverySetting.value) {
+                            dataRecoveryPrompt = recoverySetting.value;
+                        }
+                    } catch (err) {
+                        console.warn('[OpenAIService] Could not load data recovery prompt setting, using default.');
+                    }
+
+                    contextPrompt += `\n\n${dataRecoveryPrompt}`;
+                }
             }
 
             // Detect if user is asking a question (adjust temperature accordingly)

@@ -11,6 +11,7 @@ class LeadController {
                 is_important: req.query.is_important === 'true' ? true :
                     req.query.is_important === 'false' ? false : undefined,
                 source: req.query.source,
+                search: req.query.search,
             };
 
             const leads = await leadService.getAll(filters);

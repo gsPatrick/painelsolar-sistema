@@ -23,6 +23,12 @@ class LeadService {
         if (filters.include_all_status) {
             delete where.status; // Include all statuses
         }
+        if (filters.search) {
+            where[Op.or] = [
+                { name: { [Op.like]: `%${filters.search}%` } },
+                { phone: { [Op.like]: `%${filters.search}%` } },
+            ];
+        }
 
         const leads = await Lead.findAll({
             where,
