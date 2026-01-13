@@ -243,6 +243,26 @@ class FollowUpService {
         console.log(`[FollowUpService] Follow-up job complete. Sent ${sentCount}/${leads.length} messages.`);
         return { total: leads.length, sent: sentCount };
     }
+    async getHistory() {
+        const { Message, Lead } = require('../models');
+        try {
+            // Fetch last 50 AI messages (heuristic for "disparos")
+            const history = await Message.findAll({
+                where: { sender: 'ai' },
+                order: [['timestamp', 'DESC']],
+                limit: 50,
+                include: [{
+                    model: Lead,
+                    as: 'lead',
+                    attributes: ['id', 'name', 'phone']
+                }]
+            });
+            return history;
+        } catch (error) {
+            console.error('[FollowUpService] Error getting history:', error);
+            return [];
+        }
+    }
 }
 
 module.exports = new FollowUpService();

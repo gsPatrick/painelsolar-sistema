@@ -8,6 +8,15 @@ const { authenticate } = require('../auth/auth.middleware');
 router.use(authenticate);
 
 
+router.get('/history', async (req, res) => {
+    try {
+        const history = await followUpService.getHistory();
+        res.status(200).json(history);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 /**
  * GET /followup/rules
  * List all follow-up rules

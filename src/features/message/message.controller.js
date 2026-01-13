@@ -219,7 +219,7 @@ const messageController = {
                     await messageService.create({
                         lead_id: lead.id,
                         content: personalizedContent,
-                        sender: req.user ? 'agent' : 'agent',
+                        sender: 'ai', // Mark as AI for history tracking
                         timestamp: new Date()
                     });
 
