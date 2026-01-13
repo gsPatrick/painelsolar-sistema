@@ -254,7 +254,8 @@ class FollowUpService {
                 include: [{
                     model: Lead,
                     as: 'lead',
-                    attributes: ['id', 'name', 'phone']
+                    attributes: ['id', 'name', 'phone'],
+                    include: ['pipeline'] // Include Pipeline
                 }]
             });
             return history;
