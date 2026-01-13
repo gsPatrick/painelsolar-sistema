@@ -28,12 +28,17 @@ class FollowUpService {
         });
 
         try {
-            // Find all potential leads (Active & AI Active)
+            // Find all potential leads (Active & AI Active or Null)
             const leads = await Lead.findAll({
                 where: {
                     status: 'active',
-                    ai_status: 'active',
+                    [Op.or]: [
+                        { ai_status: 'active' },
+                        { ai_status: null },
+                        { ai_status: '' }
+                    ]
                 },
+                include: [{ model: require('../models').Pipeline, as: 'pipeline' }],
                 order: [['last_interaction_at', 'ASC']],
             });
 
