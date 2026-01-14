@@ -349,7 +349,7 @@ Retorne APENAS um JSON v√°lido(sem markdown) com os campos abaixo.Use null se n√
 
             const responseText = completion.choices[0]?.message?.content || '{}';
             // Clean up potential markdown formatting
-            const cleanJson = responseText.replace(/```json\n ?| ```\n?/g, '').trim();
+            const cleanJson = responseText.replace(/```json\n?|```\n?/g, '').trim();
             const data = JSON.parse(cleanJson);
 
             console.log('[OpenAIService] Extracted lead info:', data);
