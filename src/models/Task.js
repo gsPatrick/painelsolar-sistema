@@ -9,11 +9,15 @@ const Task = sequelize.define('Task', {
     },
     lead_id: {
         type: DataTypes.UUID,
-        allowNull: false,
+        allowNull: true, // Optional
     },
     title: {
         type: DataTypes.STRING(255),
         allowNull: false,
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     due_date: {
         type: DataTypes.DATE,

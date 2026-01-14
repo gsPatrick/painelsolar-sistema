@@ -44,17 +44,20 @@ class TaskService {
      * Create a new task
      */
     async create(data) {
-        const { lead_id, title, due_date, type } = data;
+        const { lead_id, title, description, due_date, type } = data;
 
-        // Verify lead exists
-        const lead = await Lead.findByPk(lead_id);
-        if (!lead) {
-            throw new Error('Lead não encontrado');
+        // Verify lead exists only if provided
+        if (lead_id) {
+            const lead = await Lead.findByPk(lead_id);
+            if (!lead) {
+                throw new Error('Lead não encontrado');
+            }
         }
 
         return Task.create({
-            lead_id,
+            lead_id: lead_id || null,
             title,
+            description,
             due_date,
             status: 'pending',
             type: type || 'OTHER',
