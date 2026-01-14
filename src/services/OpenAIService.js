@@ -62,6 +62,11 @@ REGRAS DE OURO (COMPORTAMENTO EXPERT):
 4. RESPOSTAS CURTAS:
    - Máximo de 3-4 linhas por mensagem.
 
+5. ORDEM OBRIGATÓRIA (NÃO PULE ETAPAS):
+   - SE O CLIENTE FALAR O VALOR DA CONTA, A PRÓXIMA PERGUNTA **OBRIGATÓRIA** É SOBRE O AUMENTO DE CONSUMO.
+   - NÃO pergunte sobre "Casa ou Comércio" antes de saber se ele vai aumentar o consumo.
+   - Siga a ordem: CONTA -> AUMENTO -> SEGMENTO -> TELHADO -> LOCAL.
+
 ═══════════════════════════════════════════════════════════════
 FLUXO DE CONVERSA (SCRIPT GUIA):
 ═══════════════════════════════════════════════════════════════
@@ -206,16 +211,19 @@ Nome: ${leadContext.name || 'Não informado (PERGUNTE!)'}
 Origem: ${leadContext.source === 'meta_ads' ? '📣 Facebook/Instagram (JÁ TEM NOME - NÃO PERGUNTE!)' : leadContext.source || 'WhatsApp'}
 Telefone: ${leadContext.phone || 'Não informado'}
 
-STATUS DA QUALIFICAÇÃO:
-1. Valor da Conta: ${leadContext.monthly_bill ? `✅ R$ ${leadContext.monthly_bill}` : '❌ PENDENTE (Prioridade Máxima!)'}
-2. Segmento: ${leadContext.segment ? `✅ ${leadContext.segment}` : '❌ PENDENTE'}
-3. Telhado: ${leadContext.roof_type ? `✅ ${leadContext.roof_type}` : '❌ PENDENTE'}
-4. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (PERGUNTE: "Pensa em instalar ar-condicionado ou algo que aumente o consumo?")'}
-5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE'}`;
+STATUS DA QUALIFICAÇÃO (SIGA A ORDEM!):
+1. Valor da Conta: ${leadContext.monthly_bill ? `✅ R$ ${leadContext.monthly_bill}` : '❌ PENDENTE (Prioridade 1)'}
+2. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (Prioridade 2 - PERGUNTE AGORA!)'}
+3. Segmento: ${leadContext.segment ? `✅ ${leadContext.segment}` : '❌ PENDENTE (Prioridade 3)'}
+4. Telhado: ${leadContext.roof_type ? `✅ ${leadContext.roof_type}` : '❌ PENDENTE (Prioridade 4)'}
+5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE (Prioridade 5)'}
+
+REGRA DE DECISÃO:
+- Se "Valor da Conta" está OK e "Aumento de Consumo" está PENDENTE -> PERGUNTE SOBRE O AUMENTO DE CONSUMO. NÃO pule para Segmento.`; `;
 
             // If name is known from Meta, add strong instruction
             if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
-                contextPrompt += `\n\n🎯 ATENÇÃO: Este lead veio do Facebook/Instagram e JÁ INFORMOU O NOME: "${leadContext.name}".
+                contextPrompt += `\n\n🎯 ATENÇÃO: Este lead veio do Facebook / Instagram e JÁ INFORMOU O NOME: "${leadContext.name}".
 NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tudo bem? 😊"`;
             }
 
@@ -236,7 +244,7 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
                         console.warn('[OpenAIService] Could not load data recovery prompt setting, using default.');
                     }
 
-                    contextPrompt += `\n\n${dataRecoveryPrompt}`;
+                    contextPrompt += `\n\n${ dataRecoveryPrompt } `;
                 }
             }
 
@@ -246,7 +254,7 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
             const temperature = hasQuestion ? 0.8 : 0.7; // Slightly more creative for Q&A
 
             if (hasQuestion) {
-                console.log(`[OpenAIService] Detected question/objection in message. Using temperature: ${temperature}`);
+                console.log(`[OpenAIService] Detected question / objection in message.Using temperature: ${ temperature } `);
             }
 
             const completion = await this.client.chat.completions.create({
@@ -296,24 +304,24 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
                         role: 'system',
                         content: `Você é um extrator de informações de qualificação de leads para uma empresa de energia solar.
 Analise a mensagem e extraia informações relevantes. 
-Retorne APENAS um JSON válido (sem markdown) com os campos abaixo. Use null se não encontrar.
+Retorne APENAS um JSON válido(sem markdown) com os campos abaixo.Use null se não encontrar.
 
 {
-  "name": "nome completo se mencionado",
-  "monthly_bill": "valor numérico da conta de luz (ex: 350.00)",
-  "segment": "residencial, comercial, rural ou industrial",
-  "roof_type": "ceramica, eternit, metalico, laje ou fibrocimento",
-  "equipment_increase": "equipamento mencionado (ex: ar-condicionado) OU 'não' caso o cliente negue",
-  "city": "cidade mencionada",
-  "state": "sigla do estado (ex: BA, SP)",
-  "neighborhood": "bairro mencionado"
-}
+                "name": "nome completo se mencionado",
+                    "monthly_bill": "valor numérico da conta de luz (ex: 350.00)",
+                        "segment": "residencial, comercial, rural ou industrial",
+                            "roof_type": "ceramica, eternit, metalico, laje ou fibrocimento",
+                                "equipment_increase": "equipamento mencionado (ex: ar-condicionado) OU 'não' caso o cliente negue",
+                                    "city": "cidade mencionada",
+                                        "state": "sigla do estado (ex: BA, SP)",
+                                            "neighborhood": "bairro mencionado"
+            }
 
-REGRAS:
-- Para monthly_bill: extraia apenas números. "gasto 500" → 500. "minha conta é 380 reais" → 380
-- Para segment: "casa" ou "residência" = residencial. "loja" ou "empresa" = comercial
-- Para roof_type: telha, telha colonial, telha de barro = ceramica. eternit/fibrocimento/brasilit = eternit
-- Para equipment_increase: se o cliente disser "não", "nenhum", "não pretendo", retorne "não". Se ele não mencionar nada sobre isso, retorne null.`
+            REGRAS:
+            - Para monthly_bill: extraia apenas números. "gasto 500" → 500. "minha conta é 380 reais" → 380
+                - Para segment: "casa" ou "residência" = residencial. "loja" ou "empresa" = comercial
+                    - Para roof_type: telha, telha colonial, telha de barro = ceramica.eternit / fibrocimento / brasilit = eternit
+                        - Para equipment_increase: se o cliente disser "não", "nenhum", "não pretendo", retorne "não".Se ele não mencionar nada sobre isso, retorne null.`
                     },
                     { role: 'user', content: message },
                 ],
@@ -323,7 +331,7 @@ REGRAS:
 
             const responseText = completion.choices[0]?.message?.content || '{}';
             // Clean up potential markdown formatting
-            const cleanJson = responseText.replace(/```json\n?|```\n?/g, '').trim();
+            const cleanJson = responseText.replace(/```json\n ?| ```\n?/g, '').trim();
             const data = JSON.parse(cleanJson);
 
             console.log('[OpenAIService] Extracted lead info:', data);
@@ -354,7 +362,7 @@ REGRAS:
             const { v4: uuidv4 } = require('uuid');
 
             // Download audio to temp file
-            const tempFilePath = path.join(os.tmpdir(), `${uuidv4()}.ogg`);
+            const tempFilePath = path.join(os.tmpdir(), `${ uuidv4() }.ogg`);
             const writer = fs.createWriteStream(tempFilePath);
 
             const response = await axios({
