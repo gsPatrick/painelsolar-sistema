@@ -327,6 +327,13 @@ class WebhookController {
             proposal_value: lead.proposal_value,
             system_size_kwp: lead.system_size_kwp,
             pipeline_title: lead.pipeline ? lead.pipeline.title : null,
+            // Full qualification context
+            segment: lead.segment,
+            roof_type: lead.roof_type,
+            equipment_increase: lead.equipment_increase,
+            city: lead.city,
+            state: lead.state,
+            neighborhood: lead.neighborhood
         }, dynamicPrompt, lead.id);
 
         if (aiResponse.success && aiResponse.message) {

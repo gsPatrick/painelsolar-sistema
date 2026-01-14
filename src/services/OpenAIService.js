@@ -204,8 +204,14 @@ CONTEXTO DO CLIENTE ATUAL:
 ═══════════════════════════════════════════════════════════════
 Nome: ${leadContext.name || 'Não informado (PERGUNTE!)'}
 Origem: ${leadContext.source === 'meta_ads' ? '📣 Facebook/Instagram (JÁ TEM NOME - NÃO PERGUNTE!)' : leadContext.source || 'WhatsApp'}
-Valor da Conta já informado? ${leadContext.monthly_bill ? `✅ SIM (R$ ${leadContext.monthly_bill}/mês) - NÃO PERGUNTE DE NOVO` : '❌ NÃO - PRIORIDADE MÁXIMA PERGUNTAR'}
-Telefone: ${leadContext.phone || 'Não informado'}`;
+Telefone: ${leadContext.phone || 'Não informado'}
+
+STATUS DA QUALIFICAÇÃO:
+1. Valor da Conta: ${leadContext.monthly_bill ? `✅ R$ ${leadContext.monthly_bill}` : '❌ PENDENTE (Prioridade Máxima!)'}
+2. Segmento: ${leadContext.segment ? `✅ ${leadContext.segment}` : '❌ PENDENTE'}
+3. Telhado: ${leadContext.roof_type ? `✅ ${leadContext.roof_type}` : '❌ PENDENTE'}
+4. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (PERGUNTE: "Pensa em instalar ar-condicionado ou algo que aumente o consumo?")'}
+5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE'}`;
 
             // If name is known from Meta, add strong instruction
             if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
