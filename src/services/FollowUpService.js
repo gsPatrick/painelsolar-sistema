@@ -51,7 +51,10 @@ class FollowUpService {
                 });
 
                 // If user responded, do NOT send automated follow-up (human intervention needed)
-                if (lastMessage && lastMessage.sender !== 'ai') continue;
+                if (lastMessage && lastMessage.sender !== 'ai') {
+                    // console.log(`[FollowUp] Skip ${lead.name}: User responded`);
+                    continue;
+                }
 
                 // Determine reference time for delay calculation
                 // If lastMessage exists (from AI), use its timestamp.
@@ -69,18 +72,27 @@ class FollowUpService {
                 const pipelineRules = rulesByPipeline[lead.pipeline_id];
 
                 // If no rules for this pipeline, SKIP
-                if (!pipelineRules || pipelineRules.length === 0) continue;
+                if (!pipelineRules || pipelineRules.length === 0) {
+                    // console.log(`[FollowUp] Skip ${lead.name}: No rules for pipeline ${lead.pipeline_id}`);
+                    continue;
+                }
 
                 // Determine next step
                 const nextStep = (lead.followup_count || 0) + 1;
                 const ruleToApply = pipelineRules.find(r => r.step_number === nextStep);
 
                 // If no rule for the next step, SKIP. (End of sequence)
-                if (!ruleToApply) continue;
+                if (!ruleToApply) {
+                    // console.log(`[FollowUp] Skip ${lead.name}: No rule for step ${nextStep}`);
+                    continue;
+                }
 
                 // Check delay
                 const delayMs = ruleToApply.delay_hours * 60 * 60 * 1000;
                 const timeSinceReference = new Date() - referenceTime;
+
+                // Log evaluation for debugging
+                // console.log(`[FollowUp] Eval ${lead.name}: Step ${nextStep}, Delay ${ruleToApply.delay_hours}h, Passed ${(timeSinceReference/3600000).toFixed(2)}h`);
 
                 if (timeSinceReference >= delayMs) {
                     // Lead needs follow-up!
