@@ -34,8 +34,7 @@ class FollowUpService {
                     status: 'active',
                     [Op.or]: [
                         { ai_status: 'active' },
-                        { ai_status: null },
-                        { ai_status: '' }
+                        { ai_status: null }
                     ]
                 },
                 include: [{ model: require('../models').Pipeline, as: 'pipeline' }],
