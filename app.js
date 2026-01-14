@@ -38,6 +38,10 @@ const io = new Server(server, {
 
 app.set('io', io);
 
+// Initialize BulkSenderService with Socket.io
+const bulkSenderService = require('./src/services/BulkSenderService');
+bulkSenderService.setSocket(io);
+
 // Socket.io event handling
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);

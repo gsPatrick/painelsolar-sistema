@@ -36,7 +36,7 @@ class LeadService {
                 model: Pipeline,
                 as: 'pipeline',
             }],
-            order: [['order_index', 'ASC']],
+            order: [['createdAt', 'DESC']],
         });
 
         // Calculate SLA status for each lead

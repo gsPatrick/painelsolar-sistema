@@ -244,10 +244,6 @@ class LeadController {
         }
     }
 
-    /**
-     * GET /leads/stats
-     * Get lead statistics for backup page
-     */
     async getStats(req, res) {
         try {
             const { Lead } = require('../../models');
@@ -275,6 +271,82 @@ class LeadController {
             });
         } catch (error) {
             console.error('[LeadController] GetStats error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    /**
+     * POST /leads/:id/recovery
+     * Trigger Data Recovery Script Manually
+     */
+    async sendDataRecovery(req, res) {
+        try {
+            const { leadService } = require('./lead.service'); // Ensure service is available if not global
+            const openAIService = require('../../services/OpenAIService');
+            const whatsAppService = require('../../services/WhatsAppService');
+            const { SystemSettings, Message, Lead } = require('../../models');
+
+            const leadId = req.params.id;
+            const lead = await Lead.findByPk(leadId); // Use direct find to ensure we have the model
+
+            if (!lead) {
+                return res.status(404).json({ error: 'Lead não encontrado' });
+            }
+
+            // Get Recovery Prompt
+            let recoveryPrompt = `═══════════════════════════════════════════════════════════════
+🚀 RECUPERAÇÃO DE DADOS (PRIMEIRO CONTATO):
+═══════════════════════════════════════════════════════════════
+O lead está na fase INICIAL ("Primeiro Contato") mas parou de responder ou não mandou dados.
+SEU OBJETIVO TOTAL AGORA É: Obter o valor da conta e o segmento.
+Se ele desviar do assunto, use esta abordagem:
+"Entendi! Mas para eu conseguir te passar o valor exato da economia, preciso só que você me confirme o valor médio da sua conta. Consegue me enviar agora?"
+IGNORE perguntas complexas até ter esses dados. Foco em destravar o lead.`;
+
+            try {
+                const setting = await SystemSettings.findOne({ where: { key: 'openai_data_recovery_prompt' } });
+                if (setting && setting.value) {
+                    recoveryPrompt = setting.value;
+                }
+            } catch (err) {
+                console.warn('Could not load dynamic recovery prompt');
+            }
+
+            // Generate AI Response with FORCED Context
+            // We pass an empty history to force the AI to start fresh/focus on the instruction
+            // Or we pass recent history so it knows what happened. Passing history is safer for coherence.
+            const recentMessages = await Message.findAll({
+                where: { lead_id: lead.id },
+                order: [['timestamp', 'DESC']],
+                limit: 5,
+            });
+            const history = recentMessages.reverse();
+
+            const aiResponse = await openAIService.generateResponse(history, {
+                name: lead.name,
+                phone: lead.phone,
+                // Force pipeline title context just in case
+                pipeline_title: 'Primeiro Contato'
+            }, recoveryPrompt, lead.id);
+
+            if (aiResponse.success && aiResponse.message) {
+                // Save & Send
+                await Message.create({
+                    lead_id: lead.id,
+                    content: aiResponse.message,
+                    sender: 'ai',
+                    timestamp: new Date(),
+                });
+
+                await whatsAppService.sendMessage(lead.phone, aiResponse.message);
+
+                return res.status(200).json({ message: 'Script de recuperação enviado com sucesso!', content: aiResponse.message });
+            } else {
+                return res.status(500).json({ error: 'Falha ao gerar mensagem da IA' });
+            }
+
+        } catch (error) {
+            console.error('[LeadController] SendDataRecovery error:', error.message);
             res.status(500).json({ error: error.message });
         }
     }

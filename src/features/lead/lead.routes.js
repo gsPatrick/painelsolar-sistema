@@ -26,6 +26,7 @@ router.put('/:id/block', leadController.block);
 router.put('/:id/restore', leadController.restore);
 router.post('/reorder', leadController.reorder);
 router.delete('/:id', leadController.delete);
+router.post('/:id/recovery', leadController.sendDataRecovery);
 router.patch('/:id/ai-status', leadController.updateAiStatus);
 
 module.exports = router;
