@@ -52,7 +52,7 @@ class CronService {
     scheduleFollowUps() {
         // Run every minute
         const job = cron.schedule('* * * * *', async () => {
-            // console.log('[CronService] Running Follow-up check...');
+            console.log('[CronService] Running Follow-up check...');
             try {
                 await followUpService.runFollowupJob();
             } catch (error) {
