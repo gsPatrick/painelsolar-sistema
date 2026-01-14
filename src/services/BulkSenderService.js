@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const { SystemSettings, Message, Lead } = require('../models');
 const whatsAppService = require('./WhatsAppService');
-const messageService = require('./features/message/message.service');
+const messageService = require('../features/message/message.service');
 
 // Singleton to hold job state
 class BulkSenderService extends EventEmitter {
