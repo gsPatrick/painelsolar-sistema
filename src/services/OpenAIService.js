@@ -230,9 +230,17 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
             }
 
             // [SCRIPT DE RECUPERAÇÃO DE DADOS - PRIMEIRO CONTATO]
-            // Se o lead estiver na etapa "Primeiro Contato" e faltar dados essenciais (Conta ou Segmento), force a recuperação.
+            // Se o lead estiver na etapa "Primeiro Contato" e faltar qualquer dado essencial, force a recuperação.
             if (leadContext.pipeline_title && leadContext.pipeline_title.toLowerCase().includes('primeiro contato')) {
-                if (!leadContext.monthly_bill || !leadContext.segment) {
+
+                const missingData = !leadContext.monthly_bill ||
+                    !leadContext.segment ||
+                    !leadContext.roof_type ||
+                    !leadContext.equipment_increase ||
+                    !leadContext.city;
+
+                if (missingData) {
+                    console.log('[OpenAIService] Lead incomplete in Первыйeiro Contato. Triggering Recovery Mode.');
 
                     // Try to load dynamic prompt from settings
                     let dataRecoveryPrompt = defaultDataRecoveryPrompt;
@@ -242,11 +250,19 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
                         if (recoverySetting && recoverySetting.value) {
                             dataRecoveryPrompt = recoverySetting.value;
                         }
-                    } catch (err) {
-                        console.warn('[OpenAIService] Could not load data recovery prompt setting, using default.');
-                    }
+                    } catch (err) { }
 
-                    contextPrompt += `\n\n${dataRecoveryPrompt} `;
+                    // Append specific instruction on what is missing
+                    contextPrompt += `\n\n⚠️ ALERTA DE DADOS FALTANTES (RECUPERAÇÃO):
+O lead ainda não completou o cadastro. VOCÊ NÃO PODE ENCERRAR.
+Você PRECISA perguntar o que falta:
+${!leadContext.monthly_bill ? '- Valor da Conta\n' : ''}
+${!leadContext.equipment_increase ? '- Aumento de Consumo (Ar-condicionado?)\n' : ''}
+${!leadContext.segment ? '- Segmento (Casa/Comércio)\n' : ''}
+${!leadContext.roof_type ? '- Tipo de Telhado\n' : ''}
+${!leadContext.city ? '- Cidade\n' : ''}
+
+PERGUNTE APENAS O QUE FALTA. SEJA OBJETIVA.`;
                 }
             }
 
