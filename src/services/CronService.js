@@ -3,6 +3,7 @@ const { Lead, Pipeline, Appointment, SystemSettings } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 const followUpService = require('./FollowUpService');
+const retryService = require('./RetryService');
 
 /**
  * CronService - Automated tasks for Solar CRM
@@ -26,6 +27,9 @@ class CronService {
 
         // Appointment Reminder Job - Runs every 30 minutes
         this.scheduleAppointmentReminders();
+
+        // Retry / Anti-Ghosting Job - Runs every minute
+        this.scheduleRetryJob();
 
         console.log('[CronService] All jobs scheduled.');
     }
@@ -77,6 +81,21 @@ class CronService {
 
         this.jobs.push(job);
         console.log('[CronService] Appointment Reminder job scheduled (every 30 min)');
+    }
+
+    /**
+     * Retry Job (Anti-Ghosting)
+     * Checks for leads silent for >30m in early stages
+     */
+    scheduleRetryJob() {
+        // Run every minute
+        const job = cron.schedule('* * * * *', async () => {
+            // console.log('[CronService] Running Anti-Ghosting Retry check...');
+            await retryService.checkRetries();
+        });
+
+        this.jobs.push(job);
+        console.log('[CronService] Retry Job (Anti-Ghosting) scheduled (every minute)');
     }
 
     /**
