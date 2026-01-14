@@ -269,6 +269,7 @@ class FollowUpService {
                     include: ['pipeline'] // Include Pipeline
                 }]
             });
+            console.log(`[FollowUpService] getHistory() found ${history.length} AI messages`);
             return history;
         } catch (error) {
             console.error('[FollowUpService] Error getting history:', error);
