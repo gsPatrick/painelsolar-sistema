@@ -303,7 +303,7 @@ Retorne APENAS um JSON válido (sem markdown) com os campos abaixo. Use null se 
   "monthly_bill": "valor numérico da conta de luz (ex: 350.00)",
   "segment": "residencial, comercial, rural ou industrial",
   "roof_type": "ceramica, eternit, metalico, laje ou fibrocimento",
-  "equipment_increase": "equipamento mencionado que aumentará consumo (ex: ar-condicionado, piscina)",
+  "equipment_increase": "equipamento mencionado (ex: ar-condicionado) OU 'não' caso o cliente negue",
   "city": "cidade mencionada",
   "state": "sigla do estado (ex: BA, SP)",
   "neighborhood": "bairro mencionado"
@@ -312,7 +312,8 @@ Retorne APENAS um JSON válido (sem markdown) com os campos abaixo. Use null se 
 REGRAS:
 - Para monthly_bill: extraia apenas números. "gasto 500" → 500. "minha conta é 380 reais" → 380
 - Para segment: "casa" ou "residência" = residencial. "loja" ou "empresa" = comercial
-- Para roof_type: telha, telha colonial, telha de barro = ceramica. eternit/fibrocimento/brasilit = eternit`
+- Para roof_type: telha, telha colonial, telha de barro = ceramica. eternit/fibrocimento/brasilit = eternit
+- Para equipment_increase: se o cliente disser "não", "nenhum", "não pretendo", retorne "não". Se ele não mencionar nada sobre isso, retorne null.`
                     },
                     { role: 'user', content: message },
                 ],

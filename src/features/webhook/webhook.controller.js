@@ -465,11 +465,18 @@ class WebhookController {
             // Reload lead to get latest data
             await lead.reload();
 
-            // Check if lead has the essential info (bill value OR city mentioned in messages)
-            const hasEssentialInfo = lead.monthly_bill || lead.city;
+            // Check if lead has ALL essential info (Strict Qualification)
+            // We require: Bill, City, Segment, Roof, Equipment Increase
+            const hasEssentialInfo =
+                lead.monthly_bill &&
+                lead.city &&
+                lead.segment &&
+                lead.roof_type &&
+                lead.equipment_increase;
 
             if (!hasEssentialInfo) {
-                return; // Not complete yet
+                console.log(`[Webhook] Lead ${lead.id} incomplete. Missing: ${!lead.monthly_bill ? 'Bill ' : ''}${!lead.city ? 'City ' : ''}${!lead.segment ? 'Segment ' : ''}${!lead.roof_type ? 'Roof ' : ''}${!lead.equipment_increase ? 'Eq.Increase' : ''}`);
+                return; // Not complete yet, keep with AI
             }
 
             // Check if already moved (not in "Primeiro Contato")
