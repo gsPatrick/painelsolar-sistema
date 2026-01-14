@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { Lead, Pipeline, Appointment, SystemSettings } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
+const followUpService = require('./FollowUpService');
 
 /**
  * CronService - Automated tasks for Solar CRM
@@ -16,6 +17,9 @@ class CronService {
      */
     init() {
         console.log('[CronService] Initializing scheduled jobs...');
+
+        // Follow-up Rules Job - Runs every minute
+        this.scheduleFollowUps();
 
         // SLA Alert Job - Runs every hour
         this.scheduleSLAAlerts();
@@ -39,6 +43,25 @@ class CronService {
 
         this.jobs.push(job);
         console.log('[CronService] SLA Alert job scheduled (hourly)');
+    }
+
+    /**
+     * Follow-up Job
+     * Checks for leads needing automated follow-up messages
+     */
+    scheduleFollowUps() {
+        // Run every minute
+        const job = cron.schedule('* * * * *', async () => {
+            // console.log('[CronService] Running Follow-up check...');
+            try {
+                await followUpService.runFollowupJob();
+            } catch (error) {
+                console.error('[CronService] Error in Follow-up job:', error);
+            }
+        });
+
+        this.jobs.push(job);
+        console.log('[CronService] Follow-up job scheduled (every minute)');
     }
 
     /**
