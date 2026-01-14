@@ -257,11 +257,10 @@ class FollowUpService {
     async getHistory() {
         const { Message, Lead } = require('../models');
         try {
-            // Fetch last 50 AI messages (heuristic for "disparos")
+            // Fetch ALL AI messages for history
             const history = await Message.findAll({
                 where: { sender: 'ai' },
                 order: [['timestamp', 'DESC']],
-                limit: 50,
                 include: [{
                     model: Lead,
                     as: 'lead',
