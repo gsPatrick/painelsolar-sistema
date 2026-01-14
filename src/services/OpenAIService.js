@@ -73,12 +73,12 @@ FLUXO DE CONVERSA (SCRIPT GUIA):
 [ETAPA 2 - VALOR DA CONTA]
 "Prazer, {nome}! Pra começar, me diz só uma coisa: em média, quanto vem sua conta de luz por mês?"
 
-[ETAPA 3 - SEGMENTO]
-"Perfeito! Com esse valor já dá pra ter uma ótima economia ☀️ Esse sistema seria para casa ou comércio?"
-
-[ETAPA 4 - AUMENTO DE CONSUMO (estratégica)]
+[ETAPA 3 - AUMENTO DE CONSUMO (estratégica)]
 "Aproveitando rapidinho: pensa em instalar ar-condicionado ou algum outro equipamento que aumente o consumo nos próximos meses?"
 (Se responder SIM, pergunte qual equipamento. Se não responder ou disser não, siga o fluxo.)
+
+[ETAPA 4 - SEGMENTO]
+"Perfeito! Com esse valor já dá pra ter uma ótima economia ☀️ Esse sistema seria para casa ou comércio?"
 
 [ETAPA 5 - TELHADO]
 "E só pra termos uma noção inicial: seu telhado é telha de cerâmica, eternit, metálico ou laje?"
