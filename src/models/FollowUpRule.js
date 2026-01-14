@@ -21,7 +21,7 @@ const FollowUpRule = sequelize.define('FollowUpRule', {
         defaultValue: 1, // 1st message, 2nd message, etc.
     },
     delay_hours: {
-        type: DataTypes.INTEGER, // Hours after previous interaction (or entry)
+        type: DataTypes.FLOAT, // Hours after previous interaction (or entry)
         allowNull: false,
         defaultValue: 24,
     },
