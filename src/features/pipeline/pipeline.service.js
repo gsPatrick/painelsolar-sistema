@@ -127,7 +127,7 @@ class PipelineService {
             include: [{
                 model: Lead,
                 as: 'leads',
-                order: [['created_at', 'DESC']], // Newest first
+                order: [['last_interaction_at', 'DESC']], // Newest first
             }],
         });
 
