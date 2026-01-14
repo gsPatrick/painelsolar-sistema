@@ -185,151 +185,10 @@ async function createDefaultPipelines() {
 }
 
 // ===========================================
-// Cron Jobs
+// Cron Jobs (Managed by CronService)
 // ===========================================
+const cronService = require('./src/services/CronService');
 
-// Hourly SLA Check - runs every hour for critical alerts
-cron.schedule('0 * * * *', async () => {
-    console.log('[Cron] Running hourly SLA check...');
-
-    try {
-        const overdueLeads = await leadService.getOverdueLeads();
-
-        if (overdueLeads.length === 0) {
-            console.log('[Cron] No overdue leads found');
-            return;
-        }
-
-        // Filter leads stuck for 3+ days and send individual alerts
-        const now = new Date();
-        for (const lead of overdueLeads) {
-            const lastInteraction = new Date(lead.last_interaction_at);
-            const daysStuck = Math.floor((now - lastInteraction) / 86400000);
-
-            if (daysStuck >= 3) {
-                const alertMessage = `⚠️ *Alerta: Lead Parado*
-
-O lead *${lead.name}* está parado na etapa "*${lead.pipeline?.title || 'Desconhecida'}*" há *${daysStuck} dias*.
-
-📞 Telefone: ${lead.phone}
-📅 Última interação: ${lastInteraction.toLocaleDateString('pt-BR')}
-
-Por favor, verifique e tome uma ação!`;
-
-                await whatsAppService.sendAdminAlert(alertMessage);
-                console.log(`[Cron] Alert sent for lead ${lead.id} (${daysStuck} days)`);
-            }
-        }
-    } catch (error) {
-        console.error('[Cron] Error in hourly SLA check:', error.message);
-    }
-});
-
-// Follow-up Job - runs every 15 minutes during business hours (8AM-8PM)
-const followUpService = require('./src/services/FollowUpService');
-
-cron.schedule('*/15 8-20 * * *', async () => {
-    console.log('[Cron] Running follow-up job...');
-
-    try {
-        const result = await followUpService.runFollowupJob();
-        console.log(`[Cron] Follow-up job complete: ${result.sent}/${result.total} messages sent`);
-    } catch (error) {
-        console.error('[Cron] Error in follow-up job:', error.message);
-    }
-});
-
-// Move silent leads to Follow-up pipeline - runs every hour
-const { Lead } = require('./src/models');
-const { Op } = require('sequelize');
-
-cron.schedule('30 * * * *', async () => {
-    console.log('[Cron] Checking for silent leads to move to Follow-up...');
-
-    try {
-        // Find "Primeiro Contato" and "Follow-up" pipelines
-        const primeiroContato = await Pipeline.findOne({ where: { title: 'Primeiro Contato' } });
-        const followupPipeline = await Pipeline.findOne({ where: { title: 'Follow-up' } });
-
-        if (!primeiroContato || !followupPipeline) {
-            console.log('[Cron] Pipelines not found, skipping');
-            return;
-        }
-
-        // Find leads in "Primeiro Contato" with last interaction > 24h ago
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-        const silentLeads = await Lead.findAll({
-            where: {
-                pipeline_id: primeiroContato.id,
-                last_interaction_at: {
-                    [Op.lt]: twentyFourHoursAgo
-                },
-                ai_enabled: true, // Only if AI is still enabled (not manually handled)
-            }
-        });
-
-        let movedCount = 0;
-        for (const lead of silentLeads) {
-            lead.pipeline_id = followupPipeline.id;
-            await lead.save();
-            movedCount++;
-            console.log(`[Cron] Moved lead ${lead.id} (${lead.name}) to Follow-up`);
-        }
-
-        console.log(`[Cron] Silent leads check complete: ${movedCount} leads moved to Follow-up`);
-    } catch (error) {
-        console.error('[Cron] Error moving silent leads:', error.message);
-    }
-});
-
-// Daily summary alert job - runs every day at 9:00 AM
-cron.schedule('0 9 * * *', async () => {
-    console.log('[Cron] Running daily summary alert job...');
-
-    try {
-        // Get overdue tasks
-        const overdueTasks = await taskService.getOverdueTasks();
-
-        // Get overdue leads (SLA estourado)
-        const overdueLeads = await leadService.getOverdueLeads();
-
-        if (overdueTasks.length === 0 && overdueLeads.length === 0) {
-            console.log('[Cron] No alerts to send');
-            return;
-        }
-
-        // Build alert message
-        let alertMessage = '📋 *Resumo Diário de Alertas*\n\n';
-
-        if (overdueTasks.length > 0) {
-            alertMessage += `⚠️ *${overdueTasks.length} Tarefas Vencidas:*\n`;
-            overdueTasks.slice(0, 5).forEach(task => {
-                alertMessage += `• ${task.title} (${task.lead?.name || 'Lead desconhecido'})\n`;
-            });
-            if (overdueTasks.length > 5) {
-                alertMessage += `... e mais ${overdueTasks.length - 5} tarefas\n`;
-            }
-            alertMessage += '\n';
-        }
-
-        if (overdueLeads.length > 0) {
-            alertMessage += `🔴 *${overdueLeads.length} Leads com SLA Estourado:*\n`;
-            overdueLeads.slice(0, 5).forEach(lead => {
-                alertMessage += `• ${lead.name} - ${lead.pipeline?.title || 'Sem etapa'}\n`;
-            });
-            if (overdueLeads.length > 5) {
-                alertMessage += `... e mais ${overdueLeads.length - 5} leads\n`;
-            }
-        }
-
-        // Send alert via WhatsApp
-        await whatsAppService.sendAdminAlert(alertMessage);
-        console.log('[Cron] Daily summary alert sent successfully');
-    } catch (error) {
-        console.error('[Cron] Error in daily summary alert job:', error.message);
-    }
-});
 
 // ===========================================
 // Database Sync & Server Start
@@ -367,9 +226,13 @@ async function startServer() {
             console.log(`🏥 Health check at http://localhost:${PORT}/health`);
             console.log(`🔌 Socket.io enabled`);
 
+            // Initialize Cron Jobs
+            cronService.init();
+
             // Execute Follow-up Job on Startup to process overdue leads
             setTimeout(() => {
                 console.log('🔄 [Startup] Processing backlog of leads for follow-up...');
+                const followUpService = require('./src/services/FollowUpService');
                 followUpService.runFollowupJob()
                     .then(res => console.log(`✅ [Startup] Backlog processed: ${res.sent} messages sent to ${res.total} leads.`))
                     .catch(e => console.error('❌ [Startup] Error processing backlog:', e.message));
