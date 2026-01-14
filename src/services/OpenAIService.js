@@ -219,7 +219,7 @@ STATUS DA QUALIFICAÇÃO (SIGA A ORDEM!):
 5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE (Prioridade 5)'}
 
 REGRA DE DECISÃO:
-- Se "Valor da Conta" está OK e "Aumento de Consumo" está PENDENTE -> PERGUNTE SOBRE O AUMENTO DE CONSUMO. NÃO pule para Segmento.`; `;
+- Se "Valor da Conta" está OK e "Aumento de Consumo" está PENDENTE -> PERGUNTE SOBRE O AUMENTO DE CONSUMO. NÃO pule para Segmento.`;
 
             // If name is known from Meta, add strong instruction
             if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
@@ -244,7 +244,7 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
                         console.warn('[OpenAIService] Could not load data recovery prompt setting, using default.');
                     }
 
-                    contextPrompt += `\n\n${ dataRecoveryPrompt } `;
+                    contextPrompt += `\n\n${dataRecoveryPrompt} `;
                 }
             }
 
@@ -254,7 +254,7 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
             const temperature = hasQuestion ? 0.8 : 0.7; // Slightly more creative for Q&A
 
             if (hasQuestion) {
-                console.log(`[OpenAIService] Detected question / objection in message.Using temperature: ${ temperature } `);
+                console.log(`[OpenAIService] Detected question / objection in message.Using temperature: ${temperature} `);
             }
 
             const completion = await this.client.chat.completions.create({
@@ -362,7 +362,7 @@ Retorne APENAS um JSON válido(sem markdown) com os campos abaixo.Use null se n�
             const { v4: uuidv4 } = require('uuid');
 
             // Download audio to temp file
-            const tempFilePath = path.join(os.tmpdir(), `${ uuidv4() }.ogg`);
+            const tempFilePath = path.join(os.tmpdir(), `${uuidv4()}.ogg`);
             const writer = fs.createWriteStream(tempFilePath);
 
             const response = await axios({
