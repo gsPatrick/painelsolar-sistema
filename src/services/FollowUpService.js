@@ -92,7 +92,7 @@ class FollowUpService {
                 const timeSinceReference = new Date() - referenceTime;
 
                 // Log evaluation for debugging
-                // console.log(`[FollowUp] Eval ${lead.name}: Step ${nextStep}, Delay ${ruleToApply.delay_hours}h, Passed ${(timeSinceReference/3600000).toFixed(2)}h`);
+                console.log(`[FollowUp] Eval ${lead.name}: Step ${nextStep}, Delay ${ruleToApply.delay_hours}h, Passed ${(timeSinceReference / 3600000).toFixed(2)}h`);
 
                 if (timeSinceReference >= delayMs) {
                     // Lead needs follow-up!
