@@ -212,9 +212,31 @@ class WebhookController {
                     createdAt: lead.createdAt
                 });
             }
-        } else if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
-            lead.name = senderName;
-            await lead.save();
+        } else {
+            // Se lead existe mas estava DELETADO, reativa ele como NOVO
+            if (lead.status === 'deleted') {
+                console.log(`[Webhook] ♻️ Reativando lead deletado: ${lead.phone}`);
+
+                // Encontrar pipeline de Entrada
+                let entradaPipeline = await Pipeline.findOne({ where: { title: 'Entrada' } });
+                if (!entradaPipeline) entradaPipeline = await Pipeline.findOne({ order: [['order_index', 'ASC']] });
+
+                lead.status = 'active';
+                lead.deleted_at = null;
+                lead.ai_status = 'active'; // Reset AI
+                lead.ai_paused_at = null;
+                lead.human_takeover = false;
+                lead.pipeline_id = entradaPipeline?.id; // Volta para o início
+                lead.qualification_complete = false; // Reset qualificação
+
+                await lead.save();
+                // isNewLead = true; // Mantemos false para permitir transição automática se responder
+            }
+
+            if (lead.name.startsWith('WhatsApp') && senderName !== `WhatsApp ${phone}`) {
+                lead.name = senderName;
+                await lead.save();
+            }
         }
 
         // AUTO-TRANSITION: If lead is in 'Entrada' and responds, move to 'Primeiro Contato'
