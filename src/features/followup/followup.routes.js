@@ -140,10 +140,14 @@ router.post('/bulk-send', async (req, res) => {
             return res.status(400).json({ error: 'leadIds array is required' });
         }
 
-        const result = await followUpService.bulkSend(leadIds);
+        // Fire and forget - Run in background to avoid timeout
+        followUpService.bulkSend(leadIds).catch(err =>
+            console.error('[FollowUp] Error in background bulk send:', err)
+        );
+
         res.status(200).json({
-            message: 'Bulk send completed',
-            ...result
+            message: 'Disparo em massa iniciado em segundo plano. Isso pode levar alguns minutos.',
+            background: true
         });
     } catch (error) {
         console.error('[FollowUp] Error in bulk send:', error.message);
