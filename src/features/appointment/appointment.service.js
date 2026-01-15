@@ -54,7 +54,7 @@ class AppointmentService {
      * Create a new appointment with blocking validation
      */
     async create(data) {
-        const { lead_id, date_time, type, notes, title, description } = data;
+        const { lead_id, date_time, type, notes, title, description, reminded_1day, reminded_2hours } = data;
 
         // Verify lead exists (Optional for LEMBRETE)
         if (lead_id) {
@@ -104,6 +104,8 @@ class AppointmentService {
             notes,
             title,
             description,
+            reminded_1day: reminded_1day || false,
+            reminded_2hours: reminded_2hours || false,
         });
 
         // AUTOMATION: Move lead to appropriate pipeline stage
