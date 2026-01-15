@@ -491,7 +491,9 @@ class WebhookController {
             let hasUpdates = false;
 
             // Update lead info if found
-            if (name && lead.name.startsWith('WhatsApp')) {
+            // Update lead info if found
+            if (name && lead.name !== name) {
+                console.log(`[Webhook] 📝 Updating lead name from "${lead.name}" to "${name}" (AI Extraction)`);
                 lead.name = name;
                 hasUpdates = true;
             }
