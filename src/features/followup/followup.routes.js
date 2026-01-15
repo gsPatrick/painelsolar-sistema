@@ -156,6 +156,44 @@ router.post('/bulk-send', async (req, res) => {
 });
 
 /**
+ * POST /followup/bulk-mark-sent
+ * Bulk mark leads as sent (no message)
+ */
+router.post('/bulk-mark-sent', async (req, res) => {
+    try {
+        const { leadIds } = req.body;
+        if (!leadIds || !Array.isArray(leadIds)) {
+            return res.status(400).json({ error: 'leadIds array is required' });
+        }
+
+        const result = await followUpService.bulkMarkAsSent(leadIds);
+        res.json({ message: 'Bulk marked as sent', ...result });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /followup/mark-sent/:leadId
+ * Manually mark lead as sent (no message)
+ */
+router.post('/mark-sent/:leadId', async (req, res) => {
+    try {
+        const { leadId } = req.params;
+        const lead = await Lead.findByPk(leadId, {
+            include: [{ model: require('../models').Pipeline, as: 'pipeline' }]
+        });
+
+        if (!lead) return res.status(404).json({ error: 'Lead not found' });
+
+        await followUpService.markAsSent(lead);
+        res.json({ message: 'Lead marked as sent' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * POST /followup/approve/:leadId
  * Approve and send follow-up for a paused lead (reactivates AI)
  */

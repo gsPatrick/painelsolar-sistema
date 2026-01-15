@@ -294,6 +294,39 @@ class FollowUpService {
     }
 
     /**
+     * Manuall mark a lead as having received a follow-up (without sending message)
+     */
+    async markAsSent(lead) {
+        // Resolve rule if missing (same logic as sendFollowup)
+        if (!lead.nextRule) {
+            const rules = await FollowUpRule.findAll({
+                where: { pipeline_id: lead.pipeline_id, active: true },
+                order: [['step_number', 'ASC']]
+            });
+            if (rules.length > 0) {
+                const nextStep = (lead.followup_count || 0) + 1;
+                let rule = rules.find(r => r.step_number === nextStep) || rules[0];
+                if (rule) lead.nextRule = rule;
+            }
+            if (!lead.nextRule) {
+                lead.nextRule = { id: 'manual_mark', step_number: 'Manual' };
+            }
+        }
+
+        try {
+            await lead.update({
+                last_interaction_at: new Date(),
+                followup_count: (lead.followup_count || 0) + 1,
+                last_followup_rule_id: lead.nextRule.id
+            });
+            return true;
+        } catch (error) {
+            console.error('[FollowUpService] Error marking as sent:', error);
+            return false;
+        }
+    }
+
+    /**
      * Run the follow-up job (called by CronJob)
      */
     async runFollowupJob() {
@@ -371,6 +404,25 @@ class FollowUpService {
             console.error('[FollowUpService] Error getting history:', error);
             return [];
         }
+    }
+    async bulkSend(leadIds) {
+        // ... (existing code)
+    }
+
+    async bulkMarkAsSent(leadIds) {
+        let count = 0;
+        for (const leadId of leadIds) {
+            try {
+                const lead = await Lead.findByPk(leadId);
+                if (lead) {
+                    await this.markAsSent(lead);
+                    count++;
+                }
+            } catch (err) {
+                console.error(`[FollowUp] Error marking lead ${leadId} as sent:`, err);
+            }
+        }
+        return { count };
     }
 }
 
