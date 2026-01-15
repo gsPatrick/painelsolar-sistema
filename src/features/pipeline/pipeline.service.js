@@ -127,6 +127,8 @@ class PipelineService {
             include: [{
                 model: Lead,
                 as: 'leads',
+                where: { status: 'active' }, // Only show active leads in Kanban
+                required: false, // LEFT JOIN to include empty pipelines
                 order: [['last_interaction_at', 'DESC']], // Newest first
             }],
         });
