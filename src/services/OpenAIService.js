@@ -179,6 +179,7 @@ INFORMAÇÕES DA EMPRESA (PARA DÚVIDAS):
             // Build context-aware system prompt
             let contextPrompt = basePrompt;
 
+
             // Add dynamic lead context at the end of prompt
             contextPrompt += `\n\n═══════════════════════════════════════════════════════════════
 CONTEXTO DO CLIENTE ATUAL:
@@ -187,24 +188,36 @@ Nome: ${leadContext.name || 'Não informado (PERGUNTE!)'}
 Origem: ${leadContext.source === 'meta_ads' ? '📣 Facebook/Instagram (JÁ TEM NOME - NÃO PERGUNTE!)' : leadContext.source || 'WhatsApp'}
 Telefone: ${leadContext.phone || 'Não informado'}
 
-STATUS DA QUALIFICAÇÃO (SIGA A ORDEM!):
-1. Valor da Conta: ${leadContext.monthly_bill ? `✅ R$ ${leadContext.monthly_bill}` : '❌ PENDENTE (Prioridade 1)'}
-2. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (Prioridade 2 - Próxima Pergunta OBRIGATÓRIA!)'}
-3. Segmento: ${leadContext.segment ? `✅ ${leadContext.segment}` : '❌ PENDENTE (Prioridade 3)'}
-4. Telhado: ${leadContext.roof_type ? `✅ ${leadContext.roof_type}` : '❌ PENDENTE (Prioridade 4)'}
-5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE (Prioridade 5)'}
+STATUS DA QUALIFICAÇÃO (GUIE A CONVERSA):
+1. Valor da Conta: ${leadContext.monthly_bill ? `✅ R$ ${leadContext.monthly_bill}` : '❌ PENDENTE'}
+2. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (Pergunte após o valor)'}
+3. Segmento: ${leadContext.segment ? `✅ ${leadContext.segment}` : '❌ PENDENTE'}
+4. Telhado: ${leadContext.roof_type ? `✅ ${leadContext.roof_type}` : '❌ PENDENTE'}
+5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE'}
 
-🚨 REGRA DE OURO (ORDEM RÍGIDA):
-- VOCÊ ESTÁ PROIBIDA DE PULAR ETAPAS.
-- Se "Aumento de Consumo" estiver PENDENTE, você DEVE perguntar: "Você pretende instalar ar-condicionado ou aumentar o consumo nos próximos meses?"
-- NÃO pergunte sobre "Casa ou Comércio" (Segmento) ANTES de resolver o "Aumento de Consumo".
-- Siga a numeração 1 -> 2 -> 3 -> 4 -> 5.`;
+🚨 REGRA DE PRIORIDADE (IMPORTANTE):
+1. **SE O CLIENTE FIZER UMA PERGUNTA, RESPONDA PRIMEIRO!**
+   - Não ignore dúvidas como "Vocês fazem projeto de entrada?", "Quanto custa?", "Qual a garantia?".
+   - Responda a dúvida de forma curta e direta.
+   - SÓ DEPOIS de responder, retome a pergunta de qualificação pendente.
+   
+   Exemplo Correto:
+   Cliente: "Vocês fazem projeto de entrada?"
+   Você: "Fazemos sim! Cuidamos de toda a homologação junto à Coelba. Mas me diz, qual a média da sua conta hoje?"
+
+2. REGRAS DE ORDEM (FLEXÍVEL):
+   - Tente seguir a ordem 1 -> 5, mas se o fluxo mudar, adapte-se.
+   - O mais importante é "Aumento de Consumo" logo após "Valor da Conta".`;
 
             // If name is known from Meta, add strong instruction
             if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
                 contextPrompt += `\n\n🎯 ATENÇÃO: Este lead veio do Facebook / Instagram e JÁ INFORMOU O NOME: "${leadContext.name}".
 NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tudo bem? 😊"`;
             }
+
+            // ADD SPECIFIC KNOWLEDGE FOR "PROJETO DE ENTRADA"
+            contextPrompt += `\n\n💡 CONHECIMENTO ESPECÍFICO DE PROJETO:
+- Projeto de Entrada / Padrão: SIM, fazemos! Realizamos toda a homologação, aumento de carga e trâmites com a concessionária (Coelba) inclusos no projeto solar.`;
 
             // [SCRIPT DE RECUPERAÇÃO DE DADOS - PRIMEIRO CONTATO]
             // Se o lead estiver na etapa "Primeiro Contato" e faltar qualquer dado essencial, force a recuperação.
