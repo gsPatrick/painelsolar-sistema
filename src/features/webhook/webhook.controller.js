@@ -230,6 +230,15 @@ class WebhookController {
                 lead.pipeline_id = entradaPipeline?.id; // Volta para o início
                 lead.qualification_complete = false; // Reset qualificação
 
+                // Reset Name to allow AI to update it again if specific name not provided by WhatsApp
+                if (senderName.startsWith('WhatsApp')) {
+                    lead.name = senderName;
+                } else {
+                    // If senderName is a real name (e.g. from WhatsApp profile), use it, but maybe verify?
+                    // Safer to just keep senderName as it comes from the new payload
+                    lead.name = senderName;
+                }
+
                 // RESET TOTAL (CUIDADO: Apaga dados anteriores)
                 lead.monthly_bill = null;
                 lead.segment = null;
