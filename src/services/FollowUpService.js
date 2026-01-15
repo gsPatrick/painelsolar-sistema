@@ -306,6 +306,37 @@ class FollowUpService {
         console.log(`[FollowUpService] Follow-up job complete. Sent ${sentCount}/${leads.length} messages.`);
         return { total: leads.length, sent: sentCount };
     }
+
+    /**
+     * Bulk send follow-ups to specific leads (Manual Trigger)
+     */
+    async bulkSend(leadIds) {
+        console.log(`[FollowUpService] Starting bulk send for ${leadIds.length} leads...`);
+        let sentCount = 0;
+        let errors = 0;
+
+        for (const leadId of leadIds) {
+            try {
+                const lead = await Lead.findByPk(leadId, {
+                    include: [{ model: require('../models').Pipeline, as: 'pipeline' }]
+                });
+
+                if (!lead) continue;
+
+                const success = await this.sendFollowup(lead);
+                if (success) sentCount++;
+                else errors++;
+
+                // Delay to prevent rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            } catch (err) {
+                console.error(`[FollowUpService] Error in bulk send for lead ${leadId}:`, err);
+                errors++;
+            }
+        }
+
+        return { total: leadIds.length, sent: sentCount, errors };
+    }
     async getHistory() {
         const { Message, Lead } = require('../models');
         try {

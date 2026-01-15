@@ -130,6 +130,28 @@ router.post('/send/:leadId', async (req, res) => {
 });
 
 /**
+ * POST /followup/bulk-send
+ * Bulk send follow-ups
+ */
+router.post('/bulk-send', async (req, res) => {
+    try {
+        const { leadIds } = req.body;
+        if (!leadIds || !Array.isArray(leadIds)) {
+            return res.status(400).json({ error: 'leadIds array is required' });
+        }
+
+        const result = await followUpService.bulkSend(leadIds);
+        res.status(200).json({
+            message: 'Bulk send completed',
+            ...result
+        });
+    } catch (error) {
+        console.error('[FollowUp] Error in bulk send:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * POST /followup/approve/:leadId
  * Approve and send follow-up for a paused lead (reactivates AI)
  */
