@@ -227,7 +227,22 @@ class WebhookController {
                 lead.ai_paused_at = null;
                 lead.human_takeover = false;
                 lead.pipeline_id = entradaPipeline?.id; // Volta para o início
+                lead.pipeline_id = entradaPipeline?.id; // Volta para o início
                 lead.qualification_complete = false; // Reset qualificação
+
+                // RESET TOTAL (CUIDADO: Apaga dados anteriores)
+                lead.monthly_bill = null;
+                lead.segment = null;
+                lead.roof_type = null;
+                lead.equipment_increase = null;
+                lead.city = null;
+                lead.state = null;
+                lead.neighborhood = null;
+                lead.proposal_value = 0;
+                lead.system_size_kwp = 0;
+                lead.meta_campaign_data = {}; // Limpa dados de campanha antigos se houver? Talvez manter? Melhor limpar para garantir "zerado"
+
+                await lead.save();
 
                 await lead.save();
 
