@@ -9,7 +9,15 @@ const Appointment = sequelize.define('Appointment', {
     },
     lead_id: {
         type: DataTypes.UUID,
-        allowNull: false,
+        allowNull: true, // Optional for Reminders
+    },
+    title: {
+        type: DataTypes.STRING(255),
+        allowNull: true, // Optional for Visits (can use type), Required for Reminders
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     date_time: {
         type: DataTypes.DATE,
