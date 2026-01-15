@@ -310,8 +310,9 @@ class FollowUpService {
             const success = await this.sendFollowup(lead);
             if (success) sentCount++;
 
-            // Small delay between messages to avoid rate limits
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Safer Delay: Random between 5s and 10s
+            const delay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
+            await new Promise(resolve => setTimeout(resolve, delay));
         }
 
         console.log(`[FollowUpService] Follow-up job complete. Sent ${sentCount}/${leads.length} messages.`);
@@ -338,8 +339,10 @@ class FollowUpService {
                 if (success) sentCount++;
                 else errors++;
 
-                // Delay to prevent rate limiting
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Safer Delay: Random between 5s and 10s to avoid WhatsApp ban
+                const delay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
+                console.log(`[FollowUpService] Waiting ${delay}ms before next send...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
             } catch (err) {
                 console.error(`[FollowUpService] Error in bulk send for lead ${leadId}:`, err);
                 errors++;
