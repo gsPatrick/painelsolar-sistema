@@ -189,13 +189,16 @@ Telefone: ${leadContext.phone || 'Não informado'}
 
 STATUS DA QUALIFICAÇÃO (SIGA A ORDEM!):
 1. Valor da Conta: ${leadContext.monthly_bill ? `✅ R$ ${leadContext.monthly_bill}` : '❌ PENDENTE (Prioridade 1)'}
-2. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (Prioridade 2 - PERGUNTE AGORA!)'}
+2. Aumento de Consumo: ${leadContext.equipment_increase ? `✅ ${leadContext.equipment_increase}` : '❌ PENDENTE (Prioridade 2 - Próxima Pergunta OBRIGATÓRIA!)'}
 3. Segmento: ${leadContext.segment ? `✅ ${leadContext.segment}` : '❌ PENDENTE (Prioridade 3)'}
 4. Telhado: ${leadContext.roof_type ? `✅ ${leadContext.roof_type}` : '❌ PENDENTE (Prioridade 4)'}
 5. Cidade/Localização: ${leadContext.city ? `✅ ${leadContext.city}` : '❌ PENDENTE (Prioridade 5)'}
 
-REGRA DE DECISÃO:
-- Se "Valor da Conta" está OK e "Aumento de Consumo" está PENDENTE -> PERGUNTE SOBRE O AUMENTO DE CONSUMO. NÃO pule para Segmento.`;
+🚨 REGRA DE OURO (ORDEM RÍGIDA):
+- VOCÊ ESTÁ PROIBIDA DE PULAR ETAPAS.
+- Se "Aumento de Consumo" estiver PENDENTE, você DEVE perguntar: "Você pretende instalar ar-condicionado ou aumentar o consumo nos próximos meses?"
+- NÃO pergunte sobre "Casa ou Comércio" (Segmento) ANTES de resolver o "Aumento de Consumo".
+- Siga a numeração 1 -> 2 -> 3 -> 4 -> 5.`;
 
             // If name is known from Meta, add strong instruction
             if (leadContext.source === 'meta_ads' && leadContext.name && !leadContext.name.startsWith('WhatsApp') && !leadContext.name.startsWith('Meta Lead')) {
