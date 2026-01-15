@@ -201,8 +201,38 @@ class FollowUpService {
     async sendFollowup(lead) {
         // Strict Mode: Only send if rule is attached
         if (!lead.nextRule) {
-            console.log(`[FollowUpService] Lead ${lead.id} has no rule attached. Skipping.`);
-            return false;
+            console.log(`[FollowUpService] Lead ${lead.id} has no rule attached. Attempting to resolve rule...`);
+
+            // Fetch rules for this pipeline
+            const rules = await FollowUpRule.findAll({
+                where: { pipeline_id: lead.pipeline_id, active: true },
+                order: [['step_number', 'ASC']]
+            });
+
+            if (rules.length > 0) {
+                const nextStep = (lead.followup_count || 0) + 1;
+                let rule = rules.find(r => r.step_number === nextStep);
+
+                // If no exact step match, simpler fallback: use the FIRST rule (for manual sends on delayed leads)
+                if (!rule) {
+                    rule = rules[0];
+                }
+
+                if (rule) {
+                    lead.nextRule = rule;
+                    console.log(`[FollowUpService] Resolved rule for Lead ${lead.id}: Step ${rule.step_number}`);
+                }
+            }
+
+            // If still no rule, fallback to generic Manual message
+            if (!lead.nextRule) {
+                console.log(`[FollowUpService] No rule found for Lead ${lead.id}. Using Manual Fallback.`);
+                lead.nextRule = {
+                    step_number: 'Manual',
+                    message_template: 'Olá {nome}, tudo bem?',
+                    id: 'manual_fallback'
+                };
+            }
         }
 
         let messageTemplate = lead.nextRule.message_template;
