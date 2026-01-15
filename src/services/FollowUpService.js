@@ -28,13 +28,14 @@ class FollowUpService {
         });
 
         try {
-            // Find all potential leads (Active & AI Active or Null)
+            // Find all potential leads (Active & AI Active OR Human Intervention for Manual Checks)
             const leads = await Lead.findAll({
                 where: {
                     status: 'active',
                     [Op.or]: [
                         { ai_status: 'active' },
-                        { ai_status: null }
+                        { ai_status: null },
+                        { ai_status: 'human_intervention' } // Include paused leads for manual delay check
                     ]
                 },
                 include: [{ model: require('../models').Pipeline, as: 'pipeline' }],
@@ -96,6 +97,10 @@ class FollowUpService {
 
                 if (timeSinceReference >= delayMs) {
                     // Lead needs follow-up!
+
+                    // If AI is paused, DO NOT add to auto-list here. Let it fall to manual check.
+                    if (lead.ai_status === 'human_intervention') continue;
+
                     lead.nextRule = ruleToApply; // Attach rule for processing
                     leadsNeedingFollowup.push(lead);
                 }
@@ -169,8 +174,6 @@ class FollowUpService {
                 where: {
                     status: 'active',
                     ai_status: { [Op.ne]: 'active' }, // AI is NOT active
-                    // Filter removed as per user request
-                    followup_count: { [Op.lt]: this.maxFollowups },
                 },
                 order: [['last_interaction_at', 'ASC']],
             });
