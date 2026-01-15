@@ -244,6 +244,10 @@ class WebhookController {
 
                 await lead.save();
 
+                // CRÍTICO: Apagar histórico de mensagens antigas para zerar contexto da IA
+                await Message.destroy({ where: { lead_id: lead.id } });
+                console.log(`[Webhook] 🗑️ Histórico de mensagens apagado para lead ${lead.phone} (Reset Completo)`);
+
                 await lead.save();
 
                 // SOCKET: Emit update to treat as new/updated lead
