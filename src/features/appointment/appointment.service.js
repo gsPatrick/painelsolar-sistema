@@ -122,8 +122,10 @@ class AppointmentService {
                 const targetPipeline = await Pipeline.findOne({ where: { title: targetStageTitle } });
                 if (targetPipeline && lead.pipeline_id !== targetPipeline.id) {
                     lead.pipeline_id = targetPipeline.id;
+                    lead.followup_count = 0; // FIX: Reset follow-up count on pipeline change
+                    lead.last_followup_rule_id = null;
                     await lead.save();
-                    console.log(`[AppointmentService] Lead ${lead.id} moved to '${targetStageTitle}' pipeline`);
+                    console.log(`[AppointmentService] Lead ${lead.id} moved to '${targetStageTitle}' pipeline with reset follow-up`);
                 }
             }
         } catch (error) {
@@ -245,6 +247,8 @@ class AppointmentService {
 
                 if (posVendaPipeline && lead && lead.pipeline_id !== posVendaPipeline.id) {
                     lead.pipeline_id = posVendaPipeline.id;
+                    lead.followup_count = 0;
+                    lead.last_followup_rule_id = null;
                     await lead.save();
                     console.log(`[AppointmentService] Lead ${lead.id} moved to 'Pós-Venda' pipeline after installation completion`);
                 }

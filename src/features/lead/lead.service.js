@@ -144,7 +144,8 @@ class LeadService {
         const oldPipelineId = lead.pipeline_id;
         lead.pipeline_id = pipelineId;
         lead.last_interaction_at = new Date();
-        lead.followup_count = 0; // Reset follow-up sequence for the new pipeline
+        lead.followup_count = 0; // Reset follow-up sequence
+        lead.last_followup_rule_id = null; // Reset last rule tracked for the new pipeline
 
         if (newOrderIndex !== undefined) {
             lead.order_index = newOrderIndex;

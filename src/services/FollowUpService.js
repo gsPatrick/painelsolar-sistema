@@ -101,9 +101,8 @@ class FollowUpService {
                 }
             }
 
-            // [NEW] Check for generic "Delayed" leads (Manual Only)
-            // If lead was NOT added above, check if it's "old" (> 24h) and in early stages
-            // but has NO specific rule matching.
+            // [NEW] Check for "Delayed" leads that didn't match specific steps (e.g. sequence mismatch or old leads)
+            // but are overdue based on the pipeline's rules.
             for (const lead of leads) {
                 // Skip if already added
                 if (leadsNeedingFollowup.find(l => l.id === lead.id)) continue;
@@ -120,15 +119,29 @@ class FollowUpService {
 
                 const hoursSince = (new Date() - referenceTime) / (1000 * 60 * 60);
 
-                // If > 24 hours silent and generally active pipeline
-                if (hoursSince > 24) {
+                // Determine Threshold
+                const pipelineRules = rulesByPipeline[lead.pipeline_id] || [];
+                let thresholdHours = 24; // Default fallback
+                let bestRule = null;
+
+                if (pipelineRules.length > 0) {
+                    // Use the shortest delay rule for this pipeline as the threshold
+                    // (Meaning: If you haven't spoken in X time, you are late, regardless of step count)
+                    const sortedRules = [...pipelineRules].sort((a, b) => a.delay_hours - b.delay_hours);
+                    thresholdHours = sortedRules[0].delay_hours;
+                    bestRule = sortedRules[0]; // Use the first rule as template
+                }
+
+                if (hoursSince >= thresholdHours) {
                     // Add as manual only
-                    lead.nextRule = {
+                    lead.nextRule = bestRule || {
                         step_number: 'Manual',
-                        message_template: 'Olá {nome}, ainda tem interesse?', // Default or empty
+                        message_template: 'Olá {nome}, tudo bem?', // Default
                         id: 'manual_fallback'
                     };
-                    lead.manualOnly = true; // Flag to prevent auto-send
+                    lead.manualOnly = true; // Flag to prevent auto-send by Cron, but allows manual send
+
+                    // console.log(`[FollowUp] Found Manual Candidate ${lead.name}: ${hoursSince.toFixed(1)}h silent`);
                     leadsNeedingFollowup.push(lead);
                 }
             }
