@@ -253,7 +253,18 @@ class FollowUpService {
 
         // Personalize message with lead name
         const firstName = lead.name ? lead.name.split(' ')[0] : 'Cliente';
-        const personalizedMessage = messageTemplate.replace(/{nome}/gi, firstName);
+        // FIX: Regex now handles {nome} and {{nome}} (double braces)
+        const personalizedMessage = messageTemplate.replace(/{{?nome}}?/gi, firstName);
+
+        // IDEMPOTENCY CHECK: Prevent double sending
+        // If the last interaction was less than 30 seconds ago, assume it's a duplicate trigger and skip.
+        if (lead.last_interaction_at) {
+            const secondsSinceLast = (new Date() - new Date(lead.last_interaction_at)) / 1000;
+            if (secondsSinceLast < 30) {
+                console.warn(`[FollowUpService] Skipping duplicate send for ${lead.name} (Last interaction: ${secondsSinceLast.toFixed(1)}s ago)`);
+                return false;
+            }
+        }
 
         try {
             // Send via WhatsApp
