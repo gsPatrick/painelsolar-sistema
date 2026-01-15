@@ -45,6 +45,9 @@ class FollowUpService {
             const leadsNeedingFollowup = [];
 
             for (const lead of leads) {
+                // DEBUG: Log lead being evaluated
+                console.log(`[FollowUp DEBUG] Evaluating lead ${lead.id} (${lead.name}), ai_status: ${lead.ai_status}, pipeline: ${lead.pipeline?.title || 'N/A'}`);
+
                 // Check last message to determine context
                 const lastMessage = await Message.findOne({
                     where: { lead_id: lead.id },
@@ -53,8 +56,17 @@ class FollowUpService {
 
                 // If user responded, do NOT send automated follow-up (human intervention needed)
                 if (lastMessage && lastMessage.sender !== 'ai') {
-                    // console.log(`[FollowUp] Skip ${lead.name}: User responded`);
+                    console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last message was from user (${lastMessage.sender})`);
                     continue;
+                }
+
+                // NOVA VERIFICAÇÃO: Anti-spam cooldown - Se a última mensagem da IA foi há menos de 5 minutos, pular
+                if (lastMessage && lastMessage.sender === 'ai') {
+                    const minutesSinceLast = (new Date() - new Date(lastMessage.timestamp)) / 60000;
+                    if (minutesSinceLast < 5) {
+                        console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last AI message was ${minutesSinceLast.toFixed(1)} minutes ago (cooldown)`);
+                        continue;
+                    }
                 }
 
                 // Determine reference time for delay calculation
@@ -93,9 +105,11 @@ class FollowUpService {
                 const timeSinceReference = new Date() - referenceTime;
 
                 // Log evaluation for debugging
-                console.log(`[FollowUp] Eval ${lead.name}: Step ${nextStep}, Delay ${ruleToApply.delay_hours}h, Passed ${(timeSinceReference / 3600000).toFixed(2)}h`);
+                console.log(`[FollowUp] Eval ${lead.name}: Step ${nextStep}, Delay ${ruleToApply.delay_hours}h, Passed ${(timeSinceReference / 3600000).toFixed(2)}h, Required ${ruleToApply.delay_hours}h`);
 
+                // VERIFICAÇÃO DE DELAY: Só prosseguir se tempo passado >= delay requerido
                 if (timeSinceReference >= delayMs) {
+                    console.log(`[FollowUp] ✅ Lead ${lead.name} QUALIFICA para follow-up (tempo: ${(timeSinceReference / 3600000).toFixed(2)}h >= ${ruleToApply.delay_hours}h)`);
                     // Lead needs follow-up!
 
                     // Safety Check:
@@ -104,11 +118,15 @@ class FollowUpService {
                     const isPropostaStage = lead.pipeline && lead.pipeline.title.toLowerCase().includes('proposta');
 
                     if (lead.ai_status === 'human_intervention' && !isPropostaStage) {
+                        console.log(`[FollowUp] Skip ${lead.name}: ai_status is human_intervention and not in Proposta stage`);
                         continue; // Skip for non-proposta stages
                     }
 
                     lead.nextRule = ruleToApply; // Attach rule for processing
+                    console.log(`[FollowUp] 📌 Adding ${lead.name} to follow-up list with rule step ${ruleToApply.step_number}, template: "${ruleToApply.message_template.substring(0, 50)}..."`);
                     leadsNeedingFollowup.push(lead);
+                } else {
+                    console.log(`[FollowUp] ⏳ Lead ${lead.name} NOT ready yet (tempo: ${(timeSinceReference / 3600000).toFixed(2)}h < ${ruleToApply.delay_hours}h)`);
                 }
             }
 

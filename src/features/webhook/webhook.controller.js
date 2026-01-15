@@ -269,6 +269,21 @@ class WebhookController {
                 return; // Stop if we can't understand
             }
         } else {
+            // ANTI-DUPLICATE: Verifique se essa mensagem de texto JÁ existe para este lead nos últimos 10 segundos
+            const duplicateMessage = await Message.findOne({
+                where: {
+                    lead_id: lead.id,
+                    content: messageText,
+                    sender: 'user',
+                    timestamp: { [require('sequelize').Op.gte]: new Date(new Date() - 10000) } // Últimos 10s
+                }
+            });
+
+            if (duplicateMessage) {
+                console.warn(`[Webhook] 🚫 Mensagem duplicada ignorada de ${phone}: "${messageText}"`);
+                return;
+            }
+
             // Save user message (Text)
             await Message.create({
                 lead_id: lead.id,
@@ -622,13 +637,32 @@ class WebhookController {
         }
 
         if (lead) {
+            // IDEMPOTENCY CHECK: Verifica se é o mesmo evento de lead (leadgen_id) já processado
+            if (lead.meta_leadgen_id === leadgen_id) {
+                console.log(`[Meta] ♻️ Evento duplicado ignorado para Lead ${lead.id} (leadgen_id: ${leadgen_id})`);
+                return lead;
+            }
+
+            // Se é um lead antigo preenchendo formulário NOVO, atualizamos o ID
+            // Mas cuidado: se ele preencheu de novo, talvez queira novo contato. Vamos deixar passar, mas passando histórico?
+            // Por enquanto, o código atual passa [] (histórico vazio) o que força saudação.
+            // Vamos bloquear disparo de IA se o lead já teve interação RECENTE (últimas 24h) para evitar flood.
+            const lastInteractionDiff = (new Date() - new Date(lead.last_interaction_at)) / (1000 * 60 * 60); // Horas
+
+            // Se interagiu há menos de 24h e preencheu form de novo, talvez seja melhor não mandar "Oi tudo bem" de novo se já estamos conversando.
+            // Mas vamos focar no bug principal: a repetição da saudação para o MESMO evento.
+            // A checagem acima (meta_leadgen_id === leadgen_id) já resolve a duplicação do webhook.
+
+            // Atualiza o leadgen_id para o novo
+            lead.meta_leadgen_id = leadgen_id;
+
             // Update name if current name is generic and we have a better one
             if ((lead.name === 'Meta Lead' || lead.name === 'Novo Lead' || lead.name === 'Sem Nome') && leadBasicData.name !== 'Meta Lead') {
                 lead.name = leadBasicData.name;
             }
             lead.last_interaction_at = new Date();
             await lead.save();
-            console.log(`[Meta] Lead existente atualizado: ${lead.id}`);
+            console.log(`[Meta] Lead existente atualizado com novo form: ${lead.id}`);
         } else {
             lead = await Lead.create({
                 name: leadBasicData.name,
