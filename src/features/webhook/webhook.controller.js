@@ -230,6 +230,20 @@ class WebhookController {
                 lead.qualification_complete = false; // Reset qualificação
 
                 await lead.save();
+
+                // SOCKET: Emit update to treat as new/updated lead
+                if (io) {
+                    // Send as new_lead to force add to column if it wasn't there, or update
+                    io.emit('new_lead', {
+                        id: lead.id,
+                        name: lead.name,
+                        phone: lead.phone,
+                        source: lead.source,
+                        pipeline_id: lead.pipeline_id,
+                        last_interaction_at: lead.last_interaction_at,
+                        createdAt: lead.createdAt
+                    });
+                }
                 // isNewLead = true; // Mantemos false para permitir transição automática se responder
             }
 
@@ -250,6 +264,11 @@ class WebhookController {
                     lead.pipeline_id = primeiroContatoApi.id;
                     console.log(`[Webhook] Lead ${lead.phone} moved from Entrada to Primeiro Contato due to response.`);
                     await lead.save();
+
+                    // SOCKET: Emit update event
+                    if (io) {
+                        io.emit('lead_update', lead);
+                    }
                 }
             }
         }
@@ -490,14 +509,15 @@ class WebhookController {
             }
 
             // Check if lead has all required info to move to next stage + notify admins
-            await this.checkLeadCompletion(lead, phone);
+            console.log(`[Webhook] Checking completion for lead ${lead.id}... (IO available: ${!!io})`);
+            await this.checkLeadCompletion(lead, phone, io);
         }
     }
 
     /**
      * Check if lead has all required info and move to "Enviar Proposta" + notify admins
      */
-    async checkLeadCompletion(lead, phone) {
+    async checkLeadCompletion(lead, phone, io = null) {
         try {
             // Reload lead to get latest data
             await lead.reload();
@@ -534,6 +554,11 @@ class WebhookController {
             await lead.save();
 
             console.log(`[Webhook] Lead ${lead.id} (${lead.name}) moved to "Aguardando Proposta"`);
+
+            if (io) {
+                io.emit('lead_update', lead);
+                console.log(`[Webhook] 📡 Socket event 'lead_update' emitted for ${lead.phone}`);
+            }
 
             // Send notification to all active admin numbers
             await this.notifyAdminsAboutLead(lead);
