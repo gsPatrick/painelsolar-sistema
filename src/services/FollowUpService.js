@@ -98,8 +98,14 @@ class FollowUpService {
                 if (timeSinceReference >= delayMs) {
                     // Lead needs follow-up!
 
-                    // If AI is paused, DO NOT add to auto-list here. Let it fall to manual check.
-                    if (lead.ai_status === 'human_intervention') continue;
+                    // Safety Check:
+                    // If AI is paused, normally we skip auto-send to avoid interrupting humans.
+                    // EXCEPTION: "Proposta Enviada" stage. User wants auto-followup here even if paused.
+                    const isPropostaStage = lead.pipeline && lead.pipeline.title.toLowerCase().includes('proposta');
+
+                    if (lead.ai_status === 'human_intervention' && !isPropostaStage) {
+                        continue; // Skip for non-proposta stages
+                    }
 
                     lead.nextRule = ruleToApply; // Attach rule for processing
                     leadsNeedingFollowup.push(lead);
