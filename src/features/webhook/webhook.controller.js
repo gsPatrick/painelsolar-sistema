@@ -320,21 +320,29 @@ class WebhookController {
                 isAudio = true;
 
                 // Save user message (Original Audio + Transcription)
-                await Message.create({
+                const transcriptMsg = await Message.create({
                     lead_id: lead.id,
                     content: `[ÁUDIO TRANSCRITO]: ${finalMessageText}`,
                     sender: 'user',
                     timestamp: new Date(),
                 });
+
+                if (io) {
+                    io.emit('receive_message', transcriptMsg);
+                }
             } else {
                 console.warn(`[Webhook] Failed to transcribe audio: ${transcription.error}`);
                 // Save as audio placeholder
-                await Message.create({
+                const audioMsg = await Message.create({
                     lead_id: lead.id,
                     content: '[ÁUDIO NÃO TRANSCRITO]',
                     sender: 'user',
                     timestamp: new Date(),
                 });
+
+                if (io) {
+                    io.emit('receive_message', audioMsg);
+                }
                 return; // Stop if we can't understand
             }
         } else {
@@ -354,12 +362,16 @@ class WebhookController {
             }
 
             // Save user message (Text)
-            await Message.create({
+            const textMsg = await Message.create({
                 lead_id: lead.id,
                 content: messageText,
                 sender: 'user',
                 timestamp: new Date(),
             });
+
+            if (io) {
+                io.emit('receive_message', textMsg);
+            }
         }
 
         // Check if AI is paused for this lead (human takeover OR ai_status)
@@ -440,12 +452,16 @@ class WebhookController {
             console.log(`[Webhook] ⏳ Humanized Delay: Typing for ~${typingDelaySec}s (${charCount} chars)`);
 
             // Save AI response (cleaned text)
-            await Message.create({
+            const aiMsg = await Message.create({
                 lead_id: lead.id,
                 content: responseText,
                 sender: 'ai',
                 timestamp: new Date(),
             });
+
+            if (io) {
+                io.emit('receive_message', aiMsg);
+            }
 
             // Send text via WhatsApp (with calculated typing delay)
             await whatsAppService.sendMessage(phone, responseText, typingDelaySec);
