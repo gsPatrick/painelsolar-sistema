@@ -54,20 +54,26 @@ class AppointmentService {
      * Create a new appointment with blocking validation
      */
     async create(data) {
-        const { lead_id, date_time, type, notes } = data;
+        const { lead_id, date_time, type, notes, title, description } = data;
 
-        // Verify lead exists
-        const lead = await Lead.findByPk(lead_id);
-        if (!lead) {
-            throw new Error('Lead não encontrado');
+        // Verify lead exists (Optional for LEMBRETE)
+        if (lead_id) {
+            const lead = await Lead.findByPk(lead_id);
+            if (!lead) {
+                throw new Error('Lead não encontrado');
+            }
+        } else if (type !== 'LEMBRETE') {
+            throw new Error('Lead é obrigatório para este tipo de agendamento');
         }
 
-        // Check for double booking (Strict Same Time Rule)
-        const isDoubleBooked = await this.checkDoubleBooking(date_time);
-        if (isDoubleBooked) {
-            const error = new Error('Horário Indisponível: Já existe um agendamento neste horário exato.');
-            error.statusCode = 409;
-            throw error;
+        // Check for double booking (Strict Same Time Rule) - Skip for LEMBRETE
+        if (type !== 'LEMBRETE') {
+            const isDoubleBooked = await this.checkDoubleBooking(date_time);
+            if (isDoubleBooked) {
+                const error = new Error('Horário Indisponível: Já existe um agendamento neste horário exato.');
+                error.statusCode = 409;
+                throw error;
+            }
         }
 
         // Check for conflict: VISITA_TECNICA blocked if INSTALACAO exists on same day
@@ -91,11 +97,13 @@ class AppointmentService {
         }
 
         const appointment = await Appointment.create({
-            lead_id,
+            lead_id: lead_id || null,
             date_time,
             type,
             status: 'scheduled',
             notes,
+            title,
+            description,
         });
 
         // AUTOMATION: Move lead to appropriate pipeline stage
