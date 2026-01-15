@@ -113,6 +113,13 @@ class LeadController {
     async delete(req, res) {
         try {
             const result = await leadService.delete(req.params.id);
+
+            // SOCKET: Emit delete event
+            const io = req.app.get('io');
+            if (io) {
+                io.emit('lead_deleted', { id: req.params.id });
+            }
+
             res.status(200).json(result);
         } catch (error) {
             console.error('[LeadController] Delete error:', error.message);
