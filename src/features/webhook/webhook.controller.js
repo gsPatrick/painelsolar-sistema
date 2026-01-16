@@ -443,6 +443,14 @@ class WebhookController {
                 responseText = responseText.replace('[ENVIAR_VIDEO_PROVA_SOCIAL]', '').trim();
             }
 
+            // Check for FINALIZE tag (qualification complete)
+            let shouldFinalize = false;
+            if (responseText.includes('[FINALIZAR_ATENDIMENTO]')) {
+                shouldFinalize = true;
+                responseText = responseText.replace('[FINALIZAR_ATENDIMENTO]', '').trim();
+                console.log(`[Webhook] 🎯 FINALIZAR_ATENDIMENTO tag detected for lead ${lead.id}!`);
+            }
+
             // CALCULATE HUMANIZED DELAY FOR TYPING
             // Approx 0.05s per character (very fast typist) to 0.1s
             const charCount = responseText.length;
@@ -493,6 +501,28 @@ class WebhookController {
                 }
             } else if (shouldSendVideo && campaignData.social_proof_video_sent) {
                 console.log(`[Webhook] Video already sent to ${phone}, skipping duplicate.`);
+            }
+
+            // === FORCE FINALIZATION ===
+            // If AI signaled qualification is complete, move lead to "Aguardando Proposta"
+            if (shouldFinalize) {
+                const aguardandoProposta = await Pipeline.findOne({ where: { title: 'Aguardando Proposta' } });
+                if (aguardandoProposta && lead.pipeline_id !== aguardandoProposta.id) {
+                    lead.pipeline_id = aguardandoProposta.id;
+                    lead.ai_status = 'human_intervention'; // Pause AI - human takes over
+                    lead.ai_paused_at = new Date();
+                    lead.qualification_complete = true;
+                    await lead.save();
+
+                    console.log(`[Webhook] ✅ Lead ${lead.id} (${lead.name}) FORCE MOVED to "Aguardando Proposta" via FINALIZAR tag!`);
+
+                    if (io) {
+                        io.emit('lead_update', lead);
+                    }
+
+                    // Notify admins
+                    await this.notifyAdminsAboutLead(lead);
+                }
             }
         } else if (aiResponse.fallbackMessage) {
             // Send fallback message
