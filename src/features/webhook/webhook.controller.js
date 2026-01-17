@@ -505,7 +505,15 @@ class WebhookController {
 
             // === FORCE FINALIZATION ===
             // If AI signaled qualification is complete, move lead to "Aguardando Proposta"
-            if (shouldFinalize) {
+            // TRIGGER 1: Explicit tag [FINALIZAR_ATENDIMENTO]
+            // TRIGGER 2: Heuristic - Video sent + closing message pattern
+            const hasClosingPattern = responseText.toLowerCase().includes('encaminhei') &&
+                (responseText.toLowerCase().includes('engenheiro') || responseText.toLowerCase().includes('proposta'));
+
+            const shouldMoveToAguardando = shouldFinalize || (shouldSendVideo && hasClosingPattern);
+
+            if (shouldMoveToAguardando) {
+                console.log(`[Webhook] 🎯 Finalization triggered! Tag: ${shouldFinalize}, VideoPattern: ${shouldSendVideo && hasClosingPattern}`);
                 const aguardandoProposta = await Pipeline.findOne({ where: { title: 'Aguardando Proposta' } });
                 if (aguardandoProposta && lead.pipeline_id !== aguardandoProposta.id) {
                     lead.pipeline_id = aguardandoProposta.id;
@@ -514,7 +522,7 @@ class WebhookController {
                     lead.qualification_complete = true;
                     await lead.save();
 
-                    console.log(`[Webhook] ✅ Lead ${lead.id} (${lead.name}) FORCE MOVED to "Aguardando Proposta" via FINALIZAR tag!`);
+                    console.log(`[Webhook] ✅ Lead ${lead.id} (${lead.name}) MOVED to "Aguardando Proposta"!`);
 
                     if (io) {
                         io.emit('lead_update', lead);

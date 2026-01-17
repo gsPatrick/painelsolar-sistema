@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 const followUpService = require('./FollowUpService');
 const retryService = require('./RetryService');
+const leadSweepService = require('./LeadSweepService');
 
 /**
  * CronService - Automated tasks for Solar CRM
@@ -30,6 +31,9 @@ class CronService {
 
         // Retry / Anti-Ghosting Job - Runs every minute
         this.scheduleRetryJob();
+
+        // Lead Sweep Job - Checks for stuck leads every minute
+        this.scheduleLeadSweep();
 
         console.log('[CronService] All jobs scheduled.');
     }
@@ -96,6 +100,25 @@ class CronService {
 
         this.jobs.push(job);
         console.log('[CronService] Retry Job (Anti-Ghosting) scheduled (every minute)');
+    }
+
+    /**
+     * Lead Sweep Job
+     * Checks for stuck leads in "Primeiro Contato" and moves or reminds them
+     */
+    scheduleLeadSweep() {
+        // Run every minute
+        const job = cron.schedule('* * * * *', async () => {
+            console.log('[CronService] Running Lead Sweep check...');
+            try {
+                await leadSweepService.runSweepJob();
+            } catch (error) {
+                console.error('[CronService] Error in Lead Sweep job:', error);
+            }
+        });
+
+        this.jobs.push(job);
+        console.log('[CronService] Lead Sweep job scheduled (every minute)');
     }
 
     /**
