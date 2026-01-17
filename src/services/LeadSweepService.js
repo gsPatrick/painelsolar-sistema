@@ -131,17 +131,19 @@ class LeadSweepService {
 
     /**
      * Generate a natural reminder message based on missing fields
+     * Messages are contextual - implies analysis is in progress
      */
     generateReminderMessage(leadName, missingFields) {
         const firstName = leadName ? leadName.split(' ')[0] : 'Oi';
 
         if (missingFields.length === 1) {
             const field = missingFields[0];
-            return `Oi ${firstName}! 😊 Só me falta uma informação pra eu conseguir te passar um orçamento certinho: qual o ${field}?`;
+            return `Oi ${firstName}! 😊 Nosso engenheiro está analisando e, pra finalizar sua proposta, só preciso confirmar: qual o ${field}?`;
         } else if (missingFields.length === 2) {
-            return `Oi ${firstName}! Pra eu conseguir calcular o sistema ideal pra você, preciso só confirmar: o ${missingFields[0]} e ${missingFields[1]}. Consegue me passar?`;
+            return `Oi ${firstName}! Nosso time está finalizando a análise. Pra gerar sua proposta personalizada, preciso só de duas informações: ${missingFields[0]} e ${missingFields[1]}. Consegue me passar?`;
         } else {
-            return `Oi ${firstName}! Estou aqui pra te ajudar a economizar com energia solar. Pra começar, poderia me dizer o valor médio da sua conta de luz?`;
+            // 3+ missing - ask for most important first (monthly_bill)
+            return `Oi ${firstName}! Estamos preparando sua proposta de energia solar. Pra calcular a economia exata, me confirma: qual o valor médio da sua conta de luz e qual sua cidade?`;
         }
     }
 }
