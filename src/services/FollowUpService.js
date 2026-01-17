@@ -113,13 +113,29 @@ class FollowUpService {
                     // Lead needs follow-up!
 
                     // Safety Check:
-                    // If AI is paused, normally we skip auto-send to avoid interrupting humans.
-                    // EXCEPTION: "Proposta Enviada" stage. User wants auto-followup here even if paused.
-                    const isPropostaStage = lead.pipeline && lead.pipeline.title.toLowerCase().includes('proposta');
+                    // STRICT RULE: For "Proposta Enviada" stage, we ONLY send if AI is paused (human_intervention)
+                    // For OTHER stages, we send if AI is active
+                    const isPropostaEnviada = lead.pipeline && lead.pipeline.title === 'Proposta Enviada';
 
-                    if (lead.ai_status === 'human_intervention' && !isPropostaStage) {
-                        console.log(`[FollowUp] Skip ${lead.name}: ai_status is human_intervention and not in Proposta stage`);
-                        continue; // Skip for non-proposta stages
+                    // DEBUG: Log pipeline check
+                    console.log(`[FollowUp DEBUG] Lead ${lead.name}: Pipeline="${lead.pipeline?.title}", isPropostaEnviada=${isPropostaEnviada}, ai_status=${lead.ai_status}`);
+
+                    // LOGIC:
+                    // - If in "Proposta Enviada": ONLY send if human_intervention (meaning proposal was sent manually)
+                    // - If in other stages: ONLY send if AI is active (normal automation)
+                    if (isPropostaEnviada) {
+                        // For Proposta Enviada: REQUIRE human_intervention
+                        if (lead.ai_status !== 'human_intervention') {
+                            console.log(`[FollowUp] ❌ Skip ${lead.name}: In 'Proposta Enviada' but ai_status is '${lead.ai_status}' (requires 'human_intervention')`);
+                            continue;
+                        }
+                        console.log(`[FollowUp] ✅ Lead ${lead.name} in 'Proposta Enviada' with human_intervention - WILL SEND`);
+                    } else {
+                        // For other stages: Skip if human_intervention (human is handling)
+                        if (lead.ai_status === 'human_intervention') {
+                            console.log(`[FollowUp] ❌ Skip ${lead.name}: ai_status is human_intervention and NOT in 'Proposta Enviada'`);
+                            continue;
+                        }
                     }
 
                     lead.nextRule = ruleToApply; // Attach rule for processing
