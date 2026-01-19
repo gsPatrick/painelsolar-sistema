@@ -56,7 +56,19 @@ class FollowUpService {
 
                 // If user responded, do NOT send automated follow-up (human intervention needed)
                 if (lastMessage && lastMessage.sender !== 'ai') {
-                    console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last message was from user (${lastMessage.sender})`);
+                    // EXCEPTION: IF sender is 'agent' (manual message), we treat it as a "reset" for the timer, 
+                    // but we DO want to follow up on it eventually if configured. 
+                    // BUT for now, the logic says "wait for user". 
+                    // Let's stick to the request: "Looping/Spamming".
+                    console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last message was from user/agent (${lastMessage.sender})`);
+                    continue;
+                }
+
+                // 🛑 ANTI-SPAM GUARD: If the LAST message was ALREADY from AI, DO NOT SEND ANOTHER.
+                // This forces a "turn-taking" flow: AI -> User -> AI -> User.
+                // This effectively blocks "double texting" or looping if the timer is buggy.
+                if (lastMessage && lastMessage.sender === 'ai') {
+                    console.log(`[FollowUp DEBUG] 🛑 Skip ${lead.name}: Last message was from AI. Waiting for user response.`);
                     continue;
                 }
 

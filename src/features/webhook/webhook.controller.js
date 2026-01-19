@@ -807,6 +807,7 @@ class WebhookController {
         }
 
         // STEP 4: 🎯 DISPATCH AI IMMEDIATELY - ZERO DELAY
+        // STEP 4: 🎯 DISPATCH AI IMMEDIATELY - ZERO DELAY
         if (lead.phone) {
             console.log(`[Meta] 🔥 Disparando IA Sol para ${lead.phone}...`);
 
@@ -816,11 +817,15 @@ class WebhookController {
                     include: [{ model: Pipeline, as: 'pipeline' }]
                 });
 
+                console.log(`[Meta] Contexto IA: Nome=${lead.name}, Pipeline=${lead.pipeline ? lead.pipeline.title : 'N/A'}`);
+
                 const aiResponse = await openAIService.generateResponse([], {
                     name: lead.name,
                     phone: lead.phone,
                     pipeline_title: lead.pipeline ? lead.pipeline.title : null,
                 });
+
+                console.log(`[Meta] Resposta IA sucesso: ${aiResponse.success}`);
 
                 if (aiResponse.success && aiResponse.message) {
                     let responseText = aiResponse.message;
@@ -862,9 +867,11 @@ class WebhookController {
                                 .catch(e => console.warn('[Meta] Video send error:', e.message));
                         }
                     }
+                } else {
+                    console.error('[Meta] ❌ IA falhou ou não retornou mensagem:', aiResponse);
                 }
             } catch (error) {
-                console.error('[Meta] ❌ Erro ao enviar saudação:', error.message);
+                console.error('[Meta] ❌ Erro ao enviar saudação:', error.message, error.stack);
             }
         } else {
             console.warn('[Meta] ⚠️ Sem telefone - não foi possível disparar IA');

@@ -64,6 +64,25 @@ class LeadSweepService {
                     continue;
                 }
 
+                // 🛑 ANTI-SPAM GUARD: Check last 3 messages to see if we already bugged them
+                // If the last message is from AI, we should generally wait for user response
+                // UNLESS it's a very old conversation, but we are running every 30m, so "last message was AI" 
+                // usually means we just sent a reminder.
+
+                const recentMessages = await Message.findAll({
+                    where: { lead_id: lead.id },
+                    order: [['timestamp', 'DESC']],
+                    limit: 3
+                });
+
+                // If existing history > 0 and the very last message is from 'ai', 
+                // AND we are in this loop (meaning user hasn't replied in 30+ mins),
+                // it means we already sent a message and they ignored it. DON'T SEND ANOTHER.
+                if (recentMessages.length > 0 && recentMessages[0].sender === 'ai') {
+                    console.log(`[LeadSweep] 🛑 Skip ${lead.name}: Last message was already from AI (waiting for user)`);
+                    continue;
+                }
+
                 // Check if lead has minimum required data
                 const hasMinimumData = lead.monthly_bill && lead.city;
 
