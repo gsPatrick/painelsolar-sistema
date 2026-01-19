@@ -5,6 +5,7 @@ const whatsAppService = require('./WhatsAppService');
 const followUpService = require('./FollowUpService');
 const retryService = require('./RetryService');
 const leadSweepService = require('./LeadSweepService');
+const metaSyncService = require('./MetaSyncService');
 
 /**
  * CronService - Automated tasks for Solar CRM
@@ -34,6 +35,9 @@ class CronService {
 
         // Lead Sweep Job - Checks for stuck leads every minute
         this.scheduleLeadSweep();
+
+        // Meta Sync Job - Checks for missed leads every 30 minutes
+        this.scheduleMetaSync();
 
         console.log('[CronService] All jobs scheduled.');
     }
@@ -119,6 +123,25 @@ class CronService {
 
         this.jobs.push(job);
         console.log('[CronService] Lead Sweep job scheduled (every minute)');
+    }
+
+    /**
+     * Meta Sync Job
+     * Fetches recent leads from Meta every 30 minutes to catch missed webhooks
+     */
+    scheduleMetaSync() {
+        // Run every 30 minutes
+        const job = cron.schedule('*/30 * * * *', async () => {
+            console.log('[CronService] Running Meta Lead Sync check...');
+            try {
+                await metaSyncService.runSyncJob();
+            } catch (error) {
+                console.error('[CronService] Error in Meta Sync job:', error);
+            }
+        });
+
+        this.jobs.push(job);
+        console.log('[CronService] Meta Sync job scheduled (every 30 minutes)');
     }
 
     /**
