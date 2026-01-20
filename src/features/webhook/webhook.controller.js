@@ -674,7 +674,7 @@ class WebhookController {
 📍 *Cidade:* ${lead.city || 'Não informada'}
 💡 *Conta de Luz:* ${lead.monthly_bill ? `R$ ${lead.monthly_bill}` : 'Não informada'}
 
-⏰ *Recebido em:* ${new Date(lead.createdAt).toLocaleString('pt-BR')}
+⏰ *Recebido em:* ${new Date(lead.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
 
 📋 Este lead completou o atendimento inicial e está aguardando uma proposta comercial!`;
 
