@@ -182,8 +182,8 @@ class CronService {
                 for (const apt of oneDayAppointments) {
                     if (apt.lead?.phone) {
                         const typeLabel = apt.type === 'VISITA_TECNICA' ? 'Visita Técnica' : 'Instalação';
-                        const dateStr = new Date(apt.date_time).toLocaleDateString('pt-BR');
-                        const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        const dateStr = new Date(apt.date_time).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+                        const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 
                         // Use custom message or default
                         let message = reminder1dayMessage?.value || '📅 *Lembrete de Agendamento*\n\nOlá, {nome}! Sua *{tipo}* está agendada para *amanhã ({data})* às *{hora}*.';
@@ -219,7 +219,7 @@ class CronService {
                 for (const apt of twoHourAppointments) {
                     if (apt.lead?.phone) {
                         const typeLabel = apt.type === 'VISITA_TECNICA' ? 'Visita Técnica' : 'Instalação';
-                        const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 
                         // Use custom message or default
                         let message = reminder2hoursMessage?.value || '⏰ *Lembrete: Faltam 2 horas!*\n\nOlá, {nome}! Sua *{tipo}* está marcada para *hoje às {hora}*.';
