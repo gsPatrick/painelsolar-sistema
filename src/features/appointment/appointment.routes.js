@@ -1,6 +1,6 @@
 const express = require('express');
 const appointmentController = require('./appointment.controller');
-const { authenticate } = require('../auth/auth.middleware');
+const { authenticate, checkReadOnly } = require('../auth/auth.middleware');
 
 const router = express.Router();
 
@@ -11,10 +11,12 @@ router.get('/', appointmentController.getAll);
 router.get('/today', appointmentController.getToday);
 router.get('/upcoming', appointmentController.getUpcoming);
 router.get('/:id', appointmentController.getById);
-router.post('/', appointmentController.create);
-router.put('/:id', appointmentController.update);
-router.put('/:id/cancel', appointmentController.cancel);
-router.put('/:id/complete', appointmentController.complete);
-router.delete('/:id', appointmentController.delete);
+
+// Write operations
+router.post('/', checkReadOnly, appointmentController.create);
+router.put('/:id', checkReadOnly, appointmentController.update);
+router.put('/:id/cancel', checkReadOnly, appointmentController.cancel);
+router.put('/:id/complete', checkReadOnly, appointmentController.complete);
+router.delete('/:id', checkReadOnly, appointmentController.delete);
 
 module.exports = router;

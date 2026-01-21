@@ -39,7 +39,21 @@ const authorize = (...roles) => {
     };
 };
 
+/**
+ * Middleware to prevent write operations for viewers
+ */
+const checkReadOnly = (req, res, next) => {
+    if (req.user && req.user.role === 'viewer') {
+        const mutationMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
+        if (mutationMethods.includes(req.method)) {
+            return res.status(403).json({ error: 'Acesso negado: Usuário apenas de consulta não pode realizar alterações.' });
+        }
+    }
+    next();
+};
+
 module.exports = {
     authenticate,
     authorize,
+    checkReadOnly,
 };

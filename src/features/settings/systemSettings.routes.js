@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const systemSettingsController = require('./systemSettings.controller');
-const { authenticate } = require('../auth/auth.middleware');
+const { authenticate, checkReadOnly } = require('../auth/auth.middleware');
 
 // All routes require authentication
 router.use(authenticate);
@@ -12,13 +12,9 @@ router.get('/', systemSettingsController.getAll);
 // GET specific setting by key
 router.get('/:key', systemSettingsController.getByKey);
 
-// PUT update specific setting
-router.put('/:key', systemSettingsController.update);
-
-// PUT bulk update multiple settings
-router.put('/', systemSettingsController.bulkUpdate);
-
-// POST seed defaults (admin only)
-router.post('/seed', systemSettingsController.seed);
+// Write operations
+router.put('/:key', checkReadOnly, systemSettingsController.update);
+router.put('/', checkReadOnly, systemSettingsController.bulkUpdate);
+router.post('/seed', checkReadOnly, systemSettingsController.seed);
 
 module.exports = router;

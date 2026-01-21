@@ -1,6 +1,6 @@
 const express = require('express');
 const leadController = require('./lead.controller');
-const { authenticate } = require('../auth/auth.middleware');
+const { authenticate, checkReadOnly } = require('../auth/auth.middleware');
 
 const router = express.Router();
 
@@ -19,15 +19,17 @@ router.get('/stats', leadController.getStats);
 
 router.get('/', leadController.getAll);
 router.get('/:id', leadController.getById);
-router.post('/', leadController.create);
-router.put('/:id', leadController.update);
-router.put('/:id/move', leadController.move);
-router.put('/:id/block', leadController.block);
-router.put('/:id/restore', leadController.restore);
-router.post('/reorder', leadController.reorder);
-router.delete('/:id', leadController.delete);
-router.post('/:id/recovery', leadController.sendDataRecovery);
-router.patch('/:id/ai-status', leadController.updateAiStatus);
+
+// Apply checkReadOnly for write operations
+router.post('/', checkReadOnly, leadController.create);
+router.put('/:id', checkReadOnly, leadController.update);
+router.put('/:id/move', checkReadOnly, leadController.move);
+router.put('/:id/block', checkReadOnly, leadController.block);
+router.put('/:id/restore', checkReadOnly, leadController.restore);
+router.post('/reorder', checkReadOnly, leadController.reorder);
+router.delete('/:id', checkReadOnly, leadController.delete);
+router.post('/:id/recovery', checkReadOnly, leadController.sendDataRecovery);
+router.patch('/:id/ai-status', checkReadOnly, leadController.updateAiStatus);
 
 module.exports = router;
 

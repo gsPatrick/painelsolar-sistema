@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { AdminNumber } = require('../../models');
-const { authenticate } = require('../auth/auth.middleware');
+const { authenticate, checkReadOnly } = require('../auth/auth.middleware');
 
 // All routes require authentication
 router.use(authenticate);
@@ -19,8 +19,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST create admin number
-router.post('/', async (req, res) => {
+// Write operations
+router.post('/', checkReadOnly, async (req, res) => {
     try {
         const { name, phone } = req.body;
 
@@ -28,7 +28,6 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Nome e telefone são obrigatórios' });
         }
 
-        // Format phone number (remove non-digits, ensure starts with 55)
         let formattedPhone = phone.replace(/\D/g, '');
         if (!formattedPhone.startsWith('55')) {
             formattedPhone = '55' + formattedPhone;
@@ -47,8 +46,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PUT update admin number
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkReadOnly, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, phone, active } = req.body;
@@ -76,8 +74,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// DELETE admin number
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkReadOnly, async (req, res) => {
     try {
         const { id } = req.params;
 

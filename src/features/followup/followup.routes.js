@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const followUpService = require('../../services/FollowUpService');
 const { Lead, FollowUpRule } = require('../../models');
-const { authenticate } = require('../auth/auth.middleware');
+const { authenticate, checkReadOnly } = require('../auth/auth.middleware');
 
 // All routes require authentication
 router.use(authenticate);
 
-
+// History and rules (GET)
 router.get('/history', async (req, res) => {
     try {
         const history = await followUpService.getHistory();
@@ -17,10 +17,6 @@ router.get('/history', async (req, res) => {
     }
 });
 
-/**
- * GET /followup/rules
- * List all follow-up rules
- */
 router.get('/rules', async (req, res) => {
     try {
         const rules = await FollowUpRule.findAll({
@@ -33,11 +29,8 @@ router.get('/rules', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/rules
- * Create a new rule
- */
-router.post('/rules', async (req, res) => {
+// Write operations (POST/PUT/DELETE)
+router.post('/rules', checkReadOnly, async (req, res) => {
     try {
         const rule = await FollowUpRule.create(req.body);
         res.status(201).json(rule);
@@ -46,11 +39,7 @@ router.post('/rules', async (req, res) => {
     }
 });
 
-/**
- * DELETE /followup/rules/:id
- * Delete a rule
- */
-router.delete('/rules/:id', async (req, res) => {
+router.delete('/rules/:id', checkReadOnly, async (req, res) => {
     try {
         await FollowUpRule.destroy({ where: { id: req.params.id } });
         res.status(200).json({ message: 'Rule deleted' });
@@ -59,11 +48,7 @@ router.delete('/rules/:id', async (req, res) => {
     }
 });
 
-/**
- * PUT /followup/rules/:id
- * Update an existing rule
- */
-router.put('/rules/:id', async (req, res) => {
+router.put('/rules/:id', checkReadOnly, async (req, res) => {
     try {
         const rule = await FollowUpRule.findByPk(req.params.id);
         if (!rule) {
@@ -76,12 +61,7 @@ router.put('/rules/:id', async (req, res) => {
     }
 });
 
-
-
-/**
- * GET /followup/pending
- * Get leads that need follow-up (AI is active)
- */
+// Pending/Approval (GET)
 router.get('/pending', async (req, res) => {
     try {
         const leads = await followUpService.getLeadsNeedingFollowup();
@@ -92,10 +72,6 @@ router.get('/pending', async (req, res) => {
     }
 });
 
-/**
- * GET /followup/approval
- * Get leads needing operator approval (AI is paused)
- */
 router.get('/approval', async (req, res) => {
     try {
         const leads = await followUpService.getLeadsNeedingApproval();
@@ -106,11 +82,8 @@ router.get('/approval', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/send/:leadId
- * Manually send follow-up to a specific lead
- */
-router.post('/send/:leadId', async (req, res) => {
+// Write operations for leads
+router.post('/send/:leadId', checkReadOnly, async (req, res) => {
     try {
         const lead = await Lead.findByPk(req.params.leadId);
         if (!lead) {
@@ -129,18 +102,13 @@ router.post('/send/:leadId', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/bulk-send
- * Bulk send follow-ups
- */
-router.post('/bulk-send', async (req, res) => {
+router.post('/bulk-send', checkReadOnly, async (req, res) => {
     try {
         const { leadIds } = req.body;
         if (!leadIds || !Array.isArray(leadIds)) {
             return res.status(400).json({ error: 'leadIds array is required' });
         }
 
-        // Fire and forget - Run in background to avoid timeout
         followUpService.bulkSend(leadIds).catch(err =>
             console.error('[FollowUp] Error in background bulk send:', err)
         );
@@ -155,11 +123,7 @@ router.post('/bulk-send', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/bulk-mark-sent
- * Bulk mark leads as sent (no message)
- */
-router.post('/bulk-mark-sent', async (req, res) => {
+router.post('/bulk-mark-sent', checkReadOnly, async (req, res) => {
     try {
         const { leadIds } = req.body;
         if (!leadIds || !Array.isArray(leadIds)) {
@@ -173,11 +137,7 @@ router.post('/bulk-mark-sent', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/mark-sent/:leadId
- * Manually mark lead as sent (no message)
- */
-router.post('/mark-sent/:leadId', async (req, res) => {
+router.post('/mark-sent/:leadId', checkReadOnly, async (req, res) => {
     try {
         const { leadId } = req.params;
         const lead = await Lead.findByPk(leadId, {
@@ -193,23 +153,17 @@ router.post('/mark-sent/:leadId', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/approve/:leadId
- * Approve and send follow-up for a paused lead (reactivates AI)
- */
-router.post('/approve/:leadId', async (req, res) => {
+router.post('/approve/:leadId', checkReadOnly, async (req, res) => {
     try {
         const lead = await Lead.findByPk(req.params.leadId);
         if (!lead) {
             return res.status(404).json({ error: 'Lead not found' });
         }
 
-        // Reactivate AI
         lead.ai_status = 'active';
         lead.ai_paused_at = null;
         await lead.save();
 
-        // Send follow-up
         const success = await followUpService.sendFollowup(lead);
 
         res.status(200).json({
@@ -222,11 +176,7 @@ router.post('/approve/:leadId', async (req, res) => {
     }
 });
 
-/**
- * PUT /followup/custom/:leadId
- * Set custom follow-up message for a specific lead
- */
-router.put('/custom/:leadId', async (req, res) => {
+router.put('/custom/:leadId', checkReadOnly, async (req, res) => {
     try {
         const { custom_followup_message } = req.body;
 
@@ -248,11 +198,7 @@ router.put('/custom/:leadId', async (req, res) => {
     }
 });
 
-/**
- * POST /followup/run
- * Manually trigger the follow-up job (admin only)
- */
-router.post('/run', async (req, res) => {
+router.post('/run', checkReadOnly, async (req, res) => {
     try {
         const result = await followUpService.runFollowupJob();
         res.status(200).json({
