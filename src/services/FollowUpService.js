@@ -15,8 +15,28 @@ class FollowUpService {
      */
     async getLeadsNeedingFollowup() {
         // Fetch all active rules
+        // Fetch all active rules
+        const { SystemSettings } = require('../models');
+        let rulesWhere = { active: true };
+
+        try {
+            // CHECK FOR FUNNEL FILTER (selected_funnels)
+            const funnelSetting = await SystemSettings.findOne({ where: { key: 'followup_selected_funnels' } });
+            if (funnelSetting && funnelSetting.value) {
+                const selectedFunnels = JSON.parse(funnelSetting.value); // Expects array of IDs
+                if (Array.isArray(selectedFunnels) && selectedFunnels.length > 0) {
+                    console.log(`[FollowUpService] Filtering by selected funnels: ${selectedFunnels}`);
+                    rulesWhere.pipeline_id = { [Op.in]: selectedFunnels };
+                } else {
+                    console.log('[FollowUpService] Selected funnels filter is empty. Running for ALL.');
+                }
+            }
+        } catch (err) {
+            console.error('[FollowUpService] Error parsing funnel filter:', err);
+        }
+
         const rules = await FollowUpRule.findAll({
-            where: { active: true },
+            where: rulesWhere,
             order: [['step_number', 'ASC']]
         });
 

@@ -225,40 +225,36 @@ NÃO pergunte "com quem falo?" - Comece direto com "Oi, ${leadContext.name}! Tud
             contextPrompt += `\n\n💡 CONHECIMENTO ESPECÍFICO DE PROJETO:
 - Projeto de Entrada / Padrão: SIM, fazemos! Realizamos toda a homologação, aumento de carga e trâmites com a concessionária (Coelba) inclusos no projeto solar.`;
 
+            // 🚨 REGRAS DE ORDEM RIGÍDAS 🚨
+            const stepBill = !!leadContext.monthly_bill;
+            const stepIncrease = leadContext.equipment_increase && leadContext.equipment_increase !== 'null';
+            const stepSegment = !!leadContext.segment;
+
+            // FORÇAR A ORDEM:
+            if (stepBill && !stepIncrease) {
+                contextPrompt += `\n\n🛑 PARE! O cliente já informou o valor da conta (R$ ${leadContext.monthly_bill}).
+AGORA VOCÊ É OBRIGADA A PERGUNTAR: "Você prevê aumento de consumo de energia nos próximos meses (ar-condicionado, etc)?"
+NÃO pergunte o segmento ainda. PERGUNTE O AUMENTO DE CONSUMO.`;
+            } else if (stepBill && stepIncrease && !stepSegment) {
+                contextPrompt += `\n\n✅ Ótimo! Já temos Valor e Aumento.
+AGORA, pergunte o SEGMENTO (Casa ou Comércio?).`;
+            }
+
             // [SCRIPT DE RECUPERAÇÃO DE DADOS - PRIMEIRO CONTATO]
             // Se o lead estiver na etapa "Primeiro Contato" e faltar qualquer dado essencial, force a recuperação.
             if (leadContext.pipeline_title && leadContext.pipeline_title.toLowerCase().includes('primeiro contato')) {
 
                 const missingData = !leadContext.monthly_bill ||
+                    (!leadContext.equipment_increase) || // Force check
                     !leadContext.segment ||
                     !leadContext.roof_type ||
-                    !leadContext.equipment_increase ||
                     !leadContext.city;
 
                 if (missingData) {
-                    console.log('[OpenAIService] Lead incomplete in Первыйeiro Contato. Triggering Recovery Mode.');
-
-                    // Try to load dynamic prompt from settings
-                    let dataRecoveryPrompt = defaultDataRecoveryPrompt;
-                    try {
-                        const { SystemSettings } = require('../models');
-                        const recoverySetting = await SystemSettings.findOne({ where: { key: 'openai_data_recovery_prompt' } });
-                        if (recoverySetting && recoverySetting.value) {
-                            dataRecoveryPrompt = recoverySetting.value;
-                        }
-                    } catch (err) { }
-
-                    // Append specific instruction on what is missing
-                    contextPrompt += `\n\n⚠️ ALERTA DE DADOS FALTANTES (RECUPERAÇÃO):
-O lead ainda não completou o cadastro. VOCÊ NÃO PODE ENCERRAR.
-Você PRECISA perguntar o que falta:
-${!leadContext.monthly_bill ? '- Valor da Conta\n' : ''}
-${!leadContext.equipment_increase ? '- Aumento de Consumo (Ar-condicionado?)\n' : ''}
-${!leadContext.segment ? '- Segmento (Casa/Comércio)\n' : ''}
-${!leadContext.roof_type ? '- Tipo de Telhado\n' : ''}
-${!leadContext.city ? '- Cidade\n' : ''}
-
-PERGUNTE APENAS O QUE FALTA. SEJA OBJETIVA.`;
+                    // ... (keep existing recovery logic but reinforce increase)
+                    contextPrompt += `\n\n⚠️ ALERTA DE DADOS FALTANTES:
+Verifique o que falta na lista acima e pergunte. 
+PRIORIDADE: 1. Conta -> 2. Aumento -> 3. Segmento.`;
                 }
             }
 

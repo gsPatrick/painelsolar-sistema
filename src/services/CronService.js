@@ -51,7 +51,7 @@ class CronService {
         const job = cron.schedule('0 * * * *', async () => {
             console.log('[CronService] Running SLA check...');
             await this.checkSLAAlerts();
-        });
+        }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
         console.log('[CronService] SLA Alert job scheduled (hourly)');
@@ -70,7 +70,7 @@ class CronService {
             } catch (error) {
                 console.error('[CronService] Error in Follow-up job:', error);
             }
-        });
+        }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
         console.log('[CronService] Follow-up job scheduled (every minute)');
@@ -85,7 +85,7 @@ class CronService {
         const job = cron.schedule('*/30 * * * *', async () => {
             console.log('[CronService] Running appointment reminder check...');
             await this.checkAppointmentReminders();
-        });
+        }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
         console.log('[CronService] Appointment Reminder job scheduled (every 30 min)');
@@ -100,7 +100,7 @@ class CronService {
         const job = cron.schedule('* * * * *', async () => {
             // console.log('[CronService] Running Anti-Ghosting Retry check...');
             await retryService.checkRetries();
-        });
+        }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
         console.log('[CronService] Retry Job (Anti-Ghosting) scheduled (every minute)');
@@ -119,7 +119,7 @@ class CronService {
             } catch (error) {
                 console.error('[CronService] Error in Lead Sweep job:', error);
             }
-        });
+        }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
         console.log('[CronService] Lead Sweep job scheduled (every minute)');
@@ -138,7 +138,7 @@ class CronService {
             } catch (error) {
                 console.error('[CronService] Error in Meta Sync job:', error);
             }
-        });
+        }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
         console.log('[CronService] Meta Sync job scheduled (every 30 minutes)');
