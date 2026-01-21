@@ -40,18 +40,19 @@ const messageController = {
                     console.log(`[MessageController] Pausing AI for lead ${lead.id} due to manual message`);
                     lead.ai_status = 'human_intervention';
                     lead.ai_paused_at = new Date();
-                    await lead.save();
+                }
+                // RESET FOLLOW-UP TIMER: Update last_interaction_at on agent message
+                lead.last_interaction_at = new Date();
+                await lead.save();
 
-                    // Notify frontend via Socket.IO
-                    const io = req.app.get('io');
-                    if (io) {
-                        console.log(`[MessageController] Emitting ai_paused_notification for lead ${lead.id}`);
-                        io.emit('ai_paused_notification', {
-                            leadId: lead.id,
-                            leadName: lead.name,
-                            timestamp: new Date()
-                        });
-                    }
+                // Notify frontend via Socket.IO
+                const io = req.app.get('io');
+                if (io) {
+                    console.log(`[MessageController] Emitting ai_paused_notification for lead ${lead.id}`);
+                    io.emit('ai_paused_notification', {
+                        leadId: lead.id,
+                        leadName: lead.name,
+                    });
                 }
             }
 
@@ -121,17 +122,19 @@ const messageController = {
             if (lead.ai_status !== 'human_intervention') {
                 lead.ai_status = 'human_intervention';
                 lead.ai_paused_at = new Date();
-                await lead.save();
+            }
+            // RESET FOLLOW-UP TIMER: Update last_interaction_at on agent message
+            lead.last_interaction_at = new Date();
+            await lead.save();
 
-                // Notify frontend via Socket.IO
-                const io = req.app.get('io');
-                if (io) {
-                    io.emit('ai_paused_notification', {
-                        leadId: lead.id,
-                        leadName: lead.name,
-                        timestamp: new Date()
-                    });
-                }
+            // Notify frontend via Socket.IO
+            const io = req.app.get('io');
+            if (io) {
+                io.emit('ai_paused_notification', {
+                    leadId: lead.id,
+                    leadName: lead.name,
+                    timestamp: new Date()
+                });
             }
 
             // AUTOMATION: If sending a DOCUMENT (Proposal), move to 'Proposta Enviada'
@@ -224,3 +227,4 @@ const messageController = {
 };
 
 module.exports = messageController;
+
