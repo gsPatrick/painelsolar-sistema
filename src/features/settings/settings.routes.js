@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, checkReadOnly } = require('../features/auth/auth.middleware');
+const { authenticate, checkReadOnly } = require('../auth/auth.middleware');
 
 // GET all settings
 router.get('/', authenticate, settingsController.getAll);
