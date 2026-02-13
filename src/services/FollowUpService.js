@@ -4,6 +4,8 @@ const whatsAppService = require('./WhatsAppService');
 
 class FollowUpService {
     constructor() {
+        this.isRunning = false;
+        this.processingLeads = new Set();
     }
 
     /**
@@ -15,7 +17,6 @@ class FollowUpService {
      */
     async getLeadsNeedingFollowup() {
         // Fetch all active rules
-        // Fetch all active rules
         const { SystemSettings } = require('../models');
         let rulesWhere = { active: true };
 
@@ -25,7 +26,7 @@ class FollowUpService {
             if (funnelSetting && funnelSetting.value) {
                 const selectedFunnels = JSON.parse(funnelSetting.value); // Expects array of IDs
                 if (Array.isArray(selectedFunnels) && selectedFunnels.length > 0) {
-                    console.log(`[FollowUpService] Filtering by selected funnels: ${selectedFunnels}`);
+                    // console.log(`[FollowUpService] Filtering by selected funnels: ${selectedFunnels}`);
                     rulesWhere.pipeline_id = { [Op.in]: selectedFunnels };
                 } else {
                     console.log('[FollowUpService] Selected funnels filter is empty. Running for ALL.');
@@ -47,6 +48,8 @@ class FollowUpService {
             rulesByPipeline[rule.pipeline_id].push(rule);
         });
 
+        const leadsNeedingFollowup = [];
+
         try {
             // Find all potential leads (Active & AI Active OR Human Intervention for Manual Checks)
             const leads = await Lead.findAll({
@@ -62,11 +65,9 @@ class FollowUpService {
                 order: [['last_interaction_at', 'ASC']],
             });
 
-            const leadsNeedingFollowup = [];
-
             for (const lead of leads) {
                 // DEBUG: Log lead being evaluated
-                console.log(`[FollowUp DEBUG] Evaluating lead ${lead.id} (${lead.name}), ai_status: ${lead.ai_status}, pipeline: ${lead.pipeline?.title || 'N/A'}`);
+                // console.log(`[FollowUp DEBUG] Evaluating lead ${lead.id} (${lead.name}), ai_status: ${lead.ai_status}, pipeline: ${lead.pipeline?.title || 'N/A'}`);
 
                 // Check last message to determine context
                 const lastMessage = await Message.findOne({
@@ -76,11 +77,7 @@ class FollowUpService {
 
                 // If user responded, do NOT send automated follow-up (human intervention needed)
                 if (lastMessage && lastMessage.sender !== 'ai') {
-                    // EXCEPTION: IF sender is 'agent' (manual message), we treat it as a "reset" for the timer, 
-                    // but we DO want to follow up on it eventually if configured. 
-                    // BUT for now, the logic says "wait for user". 
-                    // Let's stick to the request: "Looping/Spamming".
-                    console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last message was from user/agent (${lastMessage.sender})`);
+                    // console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last message was from user/agent (${lastMessage.sender})`);
                     continue;
                 }
 
@@ -95,7 +92,7 @@ class FollowUpService {
                 if (lastTwoMessages.length >= 2 &&
                     lastTwoMessages[0].sender === 'ai' &&
                     lastTwoMessages[1].sender === 'ai') {
-                    console.log(`[FollowUp DEBUG] 🛑 Skip ${lead.name}: 2 consecutive AI messages already sent. Waiting for user.`);
+                    // console.log(`[FollowUp DEBUG] 🛑 Skip ${lead.name}: 2 consecutive AI messages already sent. Waiting for user.`);
                     continue;
                 }
 
@@ -103,20 +100,17 @@ class FollowUpService {
                 if (lastMessage && lastMessage.sender === 'ai') {
                     const minutesSinceLast = (new Date() - new Date(lastMessage.timestamp)) / 60000;
                     if (minutesSinceLast < 5) {
-                        console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last AI message was ${minutesSinceLast.toFixed(1)} minutes ago (cooldown)`);
+                        // console.log(`[FollowUp DEBUG] Skip ${lead.name}: Last AI message was ${minutesSinceLast.toFixed(1)} minutes ago (cooldown)`);
                         continue;
                     }
                 }
 
                 // Determine reference time for delay calculation
-                // If lastMessage exists (from AI), use its timestamp.
-                // If NO message exists (new lead), use lead.createdAt or updated_at.
                 let referenceTime = lead.last_interaction_at ? new Date(lead.last_interaction_at) : new Date(lead.updatedAt);
 
                 if (lastMessage) {
                     referenceTime = new Date(lastMessage.timestamp);
                 } else if (!referenceTime || isNaN(referenceTime.getTime())) {
-                    // Fallback if dates are invalid
                     referenceTime = new Date(lead.createdAt);
                 }
 
@@ -125,7 +119,6 @@ class FollowUpService {
 
                 // If no rules for this pipeline, SKIP
                 if (!pipelineRules || pipelineRules.length === 0) {
-                    // console.log(`[FollowUp] Skip ${lead.name}: No rules for pipeline ${lead.pipeline_id}`);
                     continue;
                 }
 
@@ -135,7 +128,6 @@ class FollowUpService {
 
                 // If no rule for the next step, SKIP. (End of sequence)
                 if (!ruleToApply) {
-                    // console.log(`[FollowUp] Skip ${lead.name}: No rule for step ${nextStep}`);
                     continue;
                 }
 
@@ -143,21 +135,14 @@ class FollowUpService {
                 const delayMs = ruleToApply.delay_hours * 60 * 60 * 1000;
                 const timeSinceReference = new Date() - referenceTime;
 
-                // Log evaluation for debugging
-                console.log(`[FollowUp] Eval ${lead.name}: Step ${nextStep}, Delay ${ruleToApply.delay_hours}h, Passed ${(timeSinceReference / 3600000).toFixed(2)}h, Required ${ruleToApply.delay_hours}h`);
-
                 // VERIFICAÇÃO DE DELAY: Só prosseguir se tempo passado >= delay requerido
                 if (timeSinceReference >= delayMs) {
                     console.log(`[FollowUp] ✅ Lead ${lead.name} QUALIFICA para follow-up (tempo: ${(timeSinceReference / 3600000).toFixed(2)}h >= ${ruleToApply.delay_hours}h)`);
-                    // Lead needs follow-up!
 
                     // Safety Check:
                     // STRICT RULE: For "Proposta Enviada" stage, we ONLY send if AI is paused (human_intervention)
                     // For OTHER stages, we send if AI is active
                     const isPropostaEnviada = lead.pipeline && lead.pipeline.title === 'Proposta Enviada';
-
-                    // DEBUG: Log pipeline check
-                    console.log(`[FollowUp DEBUG] Lead ${lead.name}: Pipeline="${lead.pipeline?.title}", isPropostaEnviada=${isPropostaEnviada}, ai_status=${lead.ai_status}`);
 
                     // LOGIC:
                     // - If in "Proposta Enviada": ONLY send if human_intervention (meaning proposal was sent manually)
@@ -165,23 +150,17 @@ class FollowUpService {
                     if (isPropostaEnviada) {
                         // For Proposta Enviada: REQUIRE human_intervention
                         if (lead.ai_status !== 'human_intervention') {
-                            console.log(`[FollowUp] ❌ Skip ${lead.name}: In 'Proposta Enviada' but ai_status is '${lead.ai_status}' (requires 'human_intervention')`);
                             continue;
                         }
-                        console.log(`[FollowUp] ✅ Lead ${lead.name} in 'Proposta Enviada' with human_intervention - WILL SEND`);
                     } else {
                         // For other stages: Skip if human_intervention (human is handling)
                         if (lead.ai_status === 'human_intervention') {
-                            console.log(`[FollowUp] ❌ Skip ${lead.name}: ai_status is human_intervention and NOT in 'Proposta Enviada'`);
                             continue;
                         }
                     }
 
                     lead.nextRule = ruleToApply; // Attach rule for processing
-                    console.log(`[FollowUp] 📌 Adding ${lead.name} to follow-up list with rule step ${ruleToApply.step_number}, template: "${ruleToApply.message_template.substring(0, 50)}..."`);
                     leadsNeedingFollowup.push(lead);
-                } else {
-                    console.log(`[FollowUp] ⏳ Lead ${lead.name} NOT ready yet (tempo: ${(timeSinceReference / 3600000).toFixed(2)}h < ${ruleToApply.delay_hours}h)`);
                 }
             }
 
@@ -197,6 +176,12 @@ class FollowUpService {
                     order: [['timestamp', 'DESC']],
                 });
                 if (lastMessage && lastMessage.sender !== 'ai') continue; // User responded
+
+                // [FIX] Anti-spam cooldown check for "Delayed" leads
+                if (lastMessage && lastMessage.sender === 'ai') {
+                    const minutesSinceLast = (new Date() - new Date(lastMessage.timestamp)) / 60000;
+                    if (minutesSinceLast < 5) continue; // Skip if sent less than 5 mins ago
+                }
 
                 let referenceTime = lead.last_interaction_at ? new Date(lead.last_interaction_at) : new Date(lead.updatedAt);
                 if (lastMessage) referenceTime = new Date(lastMessage.timestamp);
@@ -224,13 +209,9 @@ class FollowUpService {
                         id: 'manual_fallback'
                     };
                     lead.manualOnly = true; // Flag to prevent auto-send by Cron, but allows manual send
-
-                    // console.log(`[FollowUp] Found Manual Candidate ${lead.name}: ${hoursSince.toFixed(1)}h silent`);
                     leadsNeedingFollowup.push(lead);
                 }
             }
-
-            return leadsNeedingFollowup;
 
             return leadsNeedingFollowup;
         } catch (error) {
@@ -243,11 +224,6 @@ class FollowUpService {
      * Get leads needing follow-up but AI is paused (need operator approval)
      */
     async getLeadsNeedingApproval() {
-        // ... (Same logic for paused leads, but maybe should show rules too? 
-        // For now keep as is: showing all paused leads that *would* need follow up OR just all paused)
-        // User requested "Show Immediately", so we removed time filter previously.
-        // Let's keep previous implementation but ensure imports work.
-
         try {
             const leads = await Lead.findAll({
                 where: {
@@ -275,94 +251,118 @@ class FollowUpService {
         }
     }
 
-
-
     /**
      * Send follow-up message to a lead
      */
     async sendFollowup(lead) {
-        // Strict Mode: Only send if rule is attached
-        if (!lead.nextRule) {
-            console.log(`[FollowUpService] Lead ${lead.id} has no rule attached. Attempting to resolve rule...`);
-
-            // Fetch rules for this pipeline
-            const rules = await FollowUpRule.findAll({
-                where: { pipeline_id: lead.pipeline_id, active: true },
-                order: [['step_number', 'ASC']]
-            });
-
-            if (rules.length > 0) {
-                const nextStep = (lead.followup_count || 0) + 1;
-                let rule = rules.find(r => r.step_number === nextStep);
-
-                // If no exact step match, simpler fallback: use the FIRST rule (for manual sends on delayed leads)
-                if (!rule) {
-                    rule = rules[0];
-                }
-
-                if (rule) {
-                    lead.nextRule = rule;
-                    console.log(`[FollowUpService] Resolved rule for Lead ${lead.id}: Step ${rule.step_number}`);
-                }
-            }
-
-            // If still no rule, fallback to generic Manual message
-            if (!lead.nextRule) {
-                console.log(`[FollowUpService] No rule found for Lead ${lead.id}. Using Manual Fallback.`);
-                lead.nextRule = {
-                    step_number: 'Manual',
-                    message_template: 'Olá {nome}, tudo bem?',
-                    id: 'manual_fallback'
-                };
-            }
-        }
-
-        let messageTemplate = lead.nextRule.message_template;
-
-        if (!messageTemplate) {
-            console.error(`[FollowUpService] Rule ${lead.nextRule.id} has no message template.`);
+        // 🔒 GLOBAL LOCK: Check if lead is already being processed in this instance
+        if (this.processingLeads.has(lead.id)) {
+            console.warn(`[FollowUpService] 🔒 Skip ${lead.id}: Already being processed in this run.`);
             return false;
         }
 
-        // Personalize message with lead name
-        const firstName = lead.name ? lead.name.split(' ')[0] : 'Cliente';
-        // FIX: Regex now handles {nome} and {{nome}} (double braces)
-        const personalizedMessage = messageTemplate.replace(/{{?nome}}?/gi, firstName);
-
-        // IDEMPOTENCY CHECK: Prevent double sending
-        // If the last interaction was less than 30 seconds ago, assume it's a duplicate trigger and skip.
-        if (lead.last_interaction_at) {
-            const secondsSinceLast = (new Date() - new Date(lead.last_interaction_at)) / 1000;
-            if (secondsSinceLast < 30) {
-                console.warn(`[FollowUpService] Skipping duplicate send for ${lead.name} (Last interaction: ${secondsSinceLast.toFixed(1)}s ago)`);
-                return false;
-            }
-        }
+        this.processingLeads.add(lead.id);
 
         try {
-            // Send via WhatsApp
-            await whatsAppService.sendText(lead.phone, personalizedMessage);
-
-            // Save message to history
-            await Message.create({
-                lead_id: lead.id,
-                content: personalizedMessage,
-                sender: 'ai',
-                timestamp: new Date(),
+            // 🛑 FINAL SAFETY CHECK: Check DB one last time for recent messages
+            const lastMessage = await Message.findOne({
+                where: { lead_id: lead.id, sender: 'ai' },
+                order: [['timestamp', 'DESC']],
             });
 
-            // Update lead follow-up tracking
-            await lead.update({
-                last_interaction_at: new Date(), // Reset timer
-                followup_count: (lead.followup_count || 0) + 1,
-                last_followup_rule_id: lead.nextRule.id
-            });
+            if (lastMessage) {
+                const minutesSinceLast = (new Date() - new Date(lastMessage.timestamp)) / 60000;
+                // STRICT 2-MINUTE COOLDOWN (Redundant but necessary for safety)
+                if (minutesSinceLast < 2) {
+                    console.warn(`[FollowUpService] 🛑 CRITICAL SKIP ${lead.name}: Message sent ${minutesSinceLast.toFixed(1)}m ago. PREVENTING SPAM.`);
+                    return false;
+                }
+            }
 
-            console.log(`[FollowUpService] Follow-up sent to ${lead.name} using Rule Step ${lead.nextRule.step_number}`);
-            return true;
-        } catch (error) {
-            console.error(`[FollowUpService] Error sending follow-up to ${lead.phone}:`, error.message);
-            return false;
+            // Strict Mode: Only send if rule is attached
+            if (!lead.nextRule) {
+                console.log(`[FollowUpService] Lead ${lead.id} has no rule attached. Attempting to resolve rule...`);
+
+                // Fetch rules for this pipeline
+                const rules = await FollowUpRule.findAll({
+                    where: { pipeline_id: lead.pipeline_id, active: true },
+                    order: [['step_number', 'ASC']]
+                });
+
+                if (rules.length > 0) {
+                    const nextStep = (lead.followup_count || 0) + 1;
+                    let rule = rules.find(r => r.step_number === nextStep);
+
+                    // If no exact step match, simpler fallback: use the FIRST rule (for manual sends on delayed leads)
+                    if (!rule) {
+                        rule = rules[0];
+                    }
+
+                    if (rule) {
+                        lead.nextRule = rule;
+                    }
+                }
+
+                // If still no rule, fallback to generic Manual message
+                if (!lead.nextRule) {
+                    console.log(`[FollowUpService] No rule found for Lead ${lead.id}. Using Manual Fallback.`);
+                    lead.nextRule = {
+                        step_number: 'Manual',
+                        message_template: 'Olá {nome}, tudo bem?',
+                        id: 'manual_fallback'
+                    };
+                }
+            }
+
+            let messageTemplate = lead.nextRule.message_template;
+
+            if (!messageTemplate) {
+                console.error(`[FollowUpService] Rule ${lead.nextRule.id} has no message template.`);
+                return false;
+            }
+
+            // Personalize message with lead name
+            const firstName = lead.name ? lead.name.split(' ')[0] : 'Cliente';
+            // FIX: Regex now handles {nome} and {{nome}} (double braces)
+            const personalizedMessage = messageTemplate.replace(/{{?nome}}?/gi, firstName);
+
+            // IDEMPOTENCY CHECK: Prevent double sending
+            if (lead.last_interaction_at) {
+                const secondsSinceLast = (new Date() - new Date(lead.last_interaction_at)) / 1000;
+                if (secondsSinceLast < 30) {
+                    console.warn(`[FollowUpService] Skipping duplicate send for ${lead.name} (Last interaction: ${secondsSinceLast.toFixed(1)}s ago)`);
+                    return false;
+                }
+            }
+
+            try {
+                // Send via WhatsApp
+                await whatsAppService.sendText(lead.phone, personalizedMessage);
+
+                // Save message to history
+                await Message.create({
+                    lead_id: lead.id,
+                    content: personalizedMessage,
+                    sender: 'ai',
+                    timestamp: new Date(),
+                });
+
+                // Update lead follow-up tracking
+                await lead.update({
+                    last_interaction_at: new Date(), // Reset timer
+                    followup_count: (lead.followup_count || 0) + 1,
+                    last_followup_rule_id: lead.nextRule.id
+                });
+
+                console.log(`[FollowUpService] Follow-up sent to ${lead.name} using Rule Step ${lead.nextRule.step_number}`);
+                return true;
+            } catch (error) {
+                console.error(`[FollowUpService] Error sending follow-up to ${lead.phone}:`, error.message);
+                return false;
+            }
+        } finally {
+            // RELEASE LOCK
+            this.processingLeads.delete(lead.id);
         }
     }
 
@@ -403,26 +403,42 @@ class FollowUpService {
      * Run the follow-up job (called by CronJob)
      */
     async runFollowupJob() {
-        console.log('[FollowUpService] Starting follow-up job...');
-
-        const leads = await this.getLeadsNeedingFollowup();
-        console.log(`[FollowUpService] Found ${leads.length} leads needing follow-up`);
-
-        let sentCount = 0;
-        for (const lead of leads) {
-            // Skip manual only leads for AUTO job
-            if (lead.manualOnly) continue;
-
-            const success = await this.sendFollowup(lead);
-            if (success) sentCount++;
-
-            // Safer Delay: Random between 5s and 10s
-            const delay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
-            await new Promise(resolve => setTimeout(resolve, delay));
+        if (this.isRunning) {
+            console.log('[FollowUpService] ⚠️ Job already running. Skipping this cycle.');
+            return { skipped: true };
         }
 
-        console.log(`[FollowUpService] Follow-up job complete. Sent ${sentCount}/${leads.length} messages.`);
-        return { total: leads.length, sent: sentCount };
+        this.isRunning = true;
+        console.log('[FollowUpService] Starting follow-up job...');
+
+        try {
+            const leads = await this.getLeadsNeedingFollowup();
+            console.log(`[FollowUpService] Found ${leads.length} leads needing follow-up`);
+
+            let sentCount = 0;
+            // Iterate with index to prevent infinite loops if array mutates
+            for (let i = 0; i < leads.length; i++) {
+                const lead = leads[i];
+
+                // Skip manual only leads for AUTO job
+                if (lead.manualOnly) continue;
+
+                const success = await this.sendFollowup(lead);
+                if (success) sentCount++;
+
+                // Safer Delay: Random between 5s and 10s
+                const delay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+
+            console.log(`[FollowUpService] Follow-up job complete. Sent ${sentCount}/${leads.length} messages.`);
+            return { total: leads.length, sent: sentCount };
+        } catch (err) {
+            console.error('[FollowUpService] Error in runFollowupJob:', err);
+            return { error: err.message };
+        } finally {
+            this.isRunning = false;
+        }
     }
 
     /**
@@ -457,6 +473,7 @@ class FollowUpService {
 
         return { total: leadIds.length, sent: sentCount, errors };
     }
+
     async getHistory() {
         const { Message, Lead } = require('../models');
         try {
@@ -477,9 +494,6 @@ class FollowUpService {
             console.error('[FollowUpService] Error getting history:', error);
             return [];
         }
-    }
-    async bulkSend(leadIds) {
-        // ... (existing code)
     }
 
     async bulkMarkAsSent(leadIds) {
