@@ -65,6 +65,50 @@ class AuthController {
             res.status(400).json({ error: error.message });
         }
     }
+
+    /**
+     * GET /auth/users
+     * Admin only check should be in routes
+     */
+    async index(req, res) {
+        try {
+            const users = await authService.getAllUsers();
+            res.status(200).json({ users });
+        } catch (error) {
+            console.error('[AuthController] Index error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    /**
+     * PUT /auth/users/:id
+     * Used for admin to update user (including password reset)
+     */
+    async updateUser(req, res) {
+        try {
+            const { id } = req.params;
+            const { name, email, password, role } = req.body;
+            const user = await authService.updateUser(id, { name, email, password, role });
+            res.status(200).json({ user });
+        } catch (error) {
+            console.error('[AuthController] UpdateUser error:', error.message);
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    /**
+     * DELETE /auth/users/:id
+     */
+    async deleteUser(req, res) {
+        try {
+            const { id } = req.params;
+            const result = await authService.deleteUser(id);
+            res.status(200).json(result);
+        } catch (error) {
+            console.error('[AuthController] Delete error:', error.message);
+            res.status(400).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new AuthController();

@@ -78,7 +78,30 @@ class AuthService {
     }
 
     /**
-     * Update user
+     * Get all users
+     */
+    async getAllUsers() {
+        const users = await User.findAll({
+            order: [['created_at', 'DESC']]
+        });
+        return users.map(user => this.sanitizeUser(user));
+    }
+
+    /**
+     * Delete user
+     * @param {string} userId
+     */
+    async deleteUser(userId) {
+        const user = await User.findByPk(userId);
+        if (!user) {
+            throw new Error('Usuário não encontrado');
+        }
+        await user.destroy();
+        return { success: true };
+    }
+
+    /**
+     * Update user (can be used for password reset)
      * @param {string} userId
      * @param {Object} data
      */
@@ -88,10 +111,11 @@ class AuthService {
             throw new Error('Usuário não encontrado');
         }
 
-        const { name, email, password } = data;
+        const { name, email, password, role } = data;
 
         if (name) user.name = name;
         if (email) user.email = email;
+        if (role) user.role = role;
         if (password) {
             user.password_hash = await bcrypt.hash(password, 10);
         }

@@ -84,11 +84,18 @@ class FollowUpService {
                     continue;
                 }
 
-                // 🛑 ANTI-SPAM GUARD: If the LAST message was ALREADY from AI, DO NOT SEND ANOTHER.
-                // This forces a "turn-taking" flow: AI -> User -> AI -> User.
-                // This effectively blocks "double texting" or looping if the timer is buggy.
-                if (lastMessage && lastMessage.sender === 'ai') {
-                    console.log(`[FollowUp DEBUG] 🛑 Skip ${lead.name}: Last message was from AI. Waiting for user response.`);
+                // 🛑 ANTI-SPAM GUARD: If we have 2 or more consecutive AI messages WITHOUT user response, 
+                // we stop auto-followup to prevent spamming a silent lead forever.
+                const lastTwoMessages = await Message.findAll({
+                    where: { lead_id: lead.id },
+                    order: [['timestamp', 'DESC']],
+                    limit: 2
+                });
+
+                if (lastTwoMessages.length >= 2 &&
+                    lastTwoMessages[0].sender === 'ai' &&
+                    lastTwoMessages[1].sender === 'ai') {
+                    console.log(`[FollowUp DEBUG] 🛑 Skip ${lead.name}: 2 consecutive AI messages already sent. Waiting for user.`);
                     continue;
                 }
 
