@@ -430,21 +430,21 @@ class WhatsAppService {
      * Delete message
      * @param {string} phone - Phone number
      * @param {string} messageId - Message ID to delete
+     * @param {boolean} owner - Whether the message was sent by me (true) or received (false). Default: true
      */
-    async deleteMessage(phone, messageId) {
+    async deleteMessage(phone, messageId, owner = true) {
         try {
             if (!this.isConfigured()) {
                 return { success: false, error: 'Z-API not configured' };
             }
 
-            const url = this.getApiUrl('delete-message');
-            const data = {
-                phone: phone.replace(/\D/g, ''),
-                messageId,
-            };
+            const url = this.getApiUrl('messages'); // Endpoint is /messages with DELETE method
 
-            const response = await axios.post(url, data, { headers: this.headers });
-            console.log(`[WhatsAppService] Message deleted`);
+            // Z-API Delete Documentation: DELETE /messages?messageId=...&phone=...&owner=...
+            const deleteUrl = `${url}?messageId=${messageId}&phone=${phone.replace(/\D/g, '')}&owner=${owner}`;
+
+            const response = await axios.delete(deleteUrl, { headers: this.headers });
+            console.log(`[WhatsAppService] Message ${messageId} deleted for ${phone}`);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('[WhatsAppService] Error deleting message:', error.response?.data || error.message);

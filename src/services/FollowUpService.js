@@ -1,6 +1,7 @@
 const { Lead, Message, FollowUpRule } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
+const openAIService = require('./OpenAIService');
 
 class FollowUpService {
     constructor() {
@@ -326,6 +327,34 @@ class FollowUpService {
             // FIX: Regex now handles {nome} and {{nome}} (double braces)
             const personalizedMessage = messageTemplate.replace(/{{?nome}}?/gi, firstName);
 
+            let finalMessage = personalizedMessage;
+
+            // TRY AI GENERATION FOR BETTER CONTEXT
+            try {
+                const recentHistory = await Message.findAll({
+                    where: { lead_id: lead.id },
+                    order: [['timestamp', 'DESC']],
+                    limit: 15
+                });
+                const conversationHistory = recentHistory.reverse();
+
+                const aiFollowup = await openAIService.generateFollowup(conversationHistory, {
+                    name: lead.name,
+                    phone: lead.phone,
+                    pipeline_title: lead.pipeline ? lead.pipeline.title : 'Não identificado',
+                    monthly_bill: lead.monthly_bill,
+                    segment: lead.segment,
+                    city: lead.city
+                });
+
+                if (aiFollowup.success && aiFollowup.message) {
+                    console.log(`[FollowUpService] 🤖 AI generated custom follow-up for ${lead.name}`);
+                    finalMessage = aiFollowup.message;
+                }
+            } catch (aiError) {
+                console.warn(`[FollowUpService] AI follow-up generation failed for ${lead.name}, falling back to template:`, aiError.message);
+            }
+
             // IDEMPOTENCY CHECK: Prevent double sending
             if (lead.last_interaction_at) {
                 const secondsSinceLast = (new Date() - new Date(lead.last_interaction_at)) / 1000;
@@ -337,12 +366,12 @@ class FollowUpService {
 
             try {
                 // Send via WhatsApp
-                await whatsAppService.sendText(lead.phone, personalizedMessage);
+                await whatsAppService.sendText(lead.phone, finalMessage);
 
                 // Save message to history
                 await Message.create({
                     lead_id: lead.id,
-                    content: personalizedMessage,
+                    content: finalMessage,
                     sender: 'ai',
                     timestamp: new Date(),
                 });

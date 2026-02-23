@@ -161,28 +161,16 @@ async function createDefaultPipelines() {
             console.log(`✅ Pipeline "${p.title}" verificado/atualizado`);
         }
 
-        // REMOVE DEPRECATED PIPELINES
-        const { Op } = require('sequelize');
-        const allowedTitles = defaultPipelines.map(p => p.title);
-
-        // Also keep TEMP_SEGURO if it exists temporarily
-        allowedTitles.push('TEMP_SEGURO');
-
-        const deletedCount = await Pipeline.destroy({
-            where: {
-                title: { [Op.notIn]: allowedTitles }
-            }
-        });
-
-        if (deletedCount > 0) {
-            console.log(`🧹 Removidos ${deletedCount} pipelines obsoletos`);
-        }
-
         console.log('ℹ️  Pipelines padrão verificados e sincronizados');
     } catch (error) {
         console.error('⚠️  Error creating default pipelines:', error.message);
     }
 }
+
+// ===========================================
+// Initialize Services with Socket.io
+// ===========================================
+leadService.setIo(io);
 
 // ===========================================
 // Cron Jobs (Managed by CronService)

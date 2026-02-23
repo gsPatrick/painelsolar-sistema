@@ -408,7 +408,7 @@ class WebhookController {
         const recentMessages = await Message.findAll({
             where: { lead_id: lead.id },
             order: [['timestamp', 'DESC']],
-            limit: 10,
+            limit: 20,
         });
 
         // Reverse to get chronological order

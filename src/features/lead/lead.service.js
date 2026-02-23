@@ -3,6 +3,17 @@ const pipelineService = require('../pipeline/pipeline.service');
 const { Op } = require('sequelize');
 
 class LeadService {
+    constructor() {
+        this.io = null;
+    }
+
+    /**
+     * Set Socket.io instance for real-time updates
+     */
+    setIo(io) {
+        this.io = io;
+    }
+
     /**
      * Get all leads with SLA status (excludes deleted/blocked by default)
      */
@@ -123,6 +134,11 @@ class LeadService {
         lead.last_interaction_at = new Date();
         await lead.save();
 
+        // Socket emission for real-time updates
+        if (this.io) {
+            this.io.emit('lead_update', lead.toJSON());
+        }
+
         return this.addSlaStatus(lead);
     }
 
@@ -152,6 +168,11 @@ class LeadService {
         }
 
         await lead.save();
+
+        // Socket emission for real-time updates
+        if (this.io) {
+            this.io.emit('lead_update', lead.toJSON());
+        }
 
         // Check for auto follow-up task creation
         await this.createAutoFollowUpTask(lead, pipeline);

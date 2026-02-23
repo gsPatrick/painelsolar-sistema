@@ -298,6 +298,56 @@ PRIORIDADE: 1. Conta -> 2. Aumento -> 3. Segmento.`;
     }
 
     /**
+     * Generate a context-aware follow-up message
+     * @param {Array} messages - Conversation history
+     * @param {Object} leadContext - Lead data
+     */
+    async generateFollowup(messages, leadContext = {}) {
+        if (!this.client) return { success: false, message: 'OpenAI not configured' };
+
+        try {
+            const firstName = leadContext.name ? leadContext.name.split(' ')[0] : 'Cliente';
+            const pipelineTitle = leadContext.pipeline_title || 'Não identificado';
+
+            const followupPrompt = `VOCÊ É A SOL (DGE ENERGIA).
+OBJETIVO: Retomar contato com o cliente de forma natural e empática.
+STATUS DO CLIENTE:
+- Nome: ${firstName}
+- Etapa do Funil: ${pipelineTitle}
+- Dados já obtidos: ${leadContext.monthly_bill ? 'Conta,' : ''} ${leadContext.segment ? 'Segmento,' : ''} ${leadContext.city ? 'Cidade' : ''}
+
+REGRAS DO FOLLOW-UP:
+1. NÃO seja robótica ("Estou aqui para saber se...").
+2. Seja leve e use o contexto da última conversa se possível.
+3. Se o lead está em "Proposta Enviada", o foco é saber o que ele achou do valor ou se tem dúvidas.
+4. Se o lead está em qualificação, o foco é obter o dado que falta suavemente.
+5. Máximo 2 frases curtas. Use emojis.
+6. Assine como Sol.`;
+
+            const completion = await this.client.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: followupPrompt },
+                    ...messages.map(m => ({
+                        role: m.sender === 'user' ? 'user' : 'assistant',
+                        content: m.content,
+                    })),
+                ],
+                max_tokens: 150,
+                temperature: 0.8,
+            });
+
+            return {
+                success: true,
+                message: completion.choices[0]?.message?.content,
+            };
+        } catch (error) {
+            console.error('[OpenAIService] Error generating follow-up:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
      * Extract lead information from a message
      * @param {string} message - User message
      */
