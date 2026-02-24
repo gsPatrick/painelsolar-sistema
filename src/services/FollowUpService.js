@@ -345,11 +345,17 @@ class FollowUpService {
                     monthly_bill: lead.monthly_bill,
                     segment: lead.segment,
                     city: lead.city
-                });
+                }, personalizedMessage);
 
-                if (aiFollowup.success && aiFollowup.message) {
-                    console.log(`[FollowUpService] 🤖 AI generated custom follow-up for ${lead.name}`);
-                    finalMessage = aiFollowup.message;
+                if (aiFollowup.success) {
+                    if (aiFollowup.skip) {
+                        console.log(`[FollowUpService] ⏭️ AI suggested SKIPPING follow-up for ${lead.name} based on context.`);
+                        return false;
+                    }
+                    if (aiFollowup.message) {
+                        console.log(`[FollowUpService] 🤖 AI generated custom follow-up for ${lead.name}`);
+                        finalMessage = aiFollowup.message;
+                    }
                 }
             } catch (aiError) {
                 console.warn(`[FollowUpService] AI follow-up generation failed for ${lead.name}, falling back to template:`, aiError.message);

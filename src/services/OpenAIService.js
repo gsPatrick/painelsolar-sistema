@@ -298,11 +298,12 @@ PRIORIDADE: 1. Conta -> 2. Aumento -> 3. Segmento.`;
     }
 
     /**
-     * Generate a context-aware follow-up message
+     * Generate a context-aware follow-up message based on a template
      * @param {Array} messages - Conversation history
      * @param {Object} leadContext - Lead data
+     * @param {string} template - The original system template
      */
-    async generateFollowup(messages, leadContext = {}) {
+    async generateFollowup(messages, leadContext = {}, template = '') {
         if (!this.client) return { success: false, message: 'OpenAI not configured' };
 
         try {
@@ -310,17 +311,20 @@ PRIORIDADE: 1. Conta -> 2. Aumento -> 3. Segmento.`;
             const pipelineTitle = leadContext.pipeline_title || 'Não identificado';
 
             const followupPrompt = `VOCÊ É A SOL (DGE ENERGIA).
-OBJETIVO: Retomar contato com o cliente de forma natural e empática.
-STATUS DO CLIENTE:
+OBJETIVO: Retomar contato com o cliente seguindo O SCRIPT DE FOLLOW-UP ABAIXO.
+
+SCRIPT OBRIGATÓRIO (Use como base):
+"${template}"
+
+CONTEXTO DO CLIENTE:
 - Nome: ${firstName}
 - Etapa do Funil: ${pipelineTitle}
-- Dados já obtidos: ${leadContext.monthly_bill ? 'Conta,' : ''} ${leadContext.segment ? 'Segmento,' : ''} ${leadContext.city ? 'Cidade' : ''}
 
-REGRAS DO FOLLOW-UP:
-1. NÃO seja robótica ("Estou aqui para saber se...").
-2. Seja leve e use o contexto da última conversa se possível.
-3. Se o lead está em "Proposta Enviada", o foco é saber o que ele achou do valor ou se tem dúvidas.
-4. Se o lead está em qualificação, o foco é obter o dado que falta suavemente.
+REGRAS:
+1. MANTENHA A ESSÊNCIA E A PERGUNTA DO SCRIPT.
+2. Seja natural e empática, mas siga a linha do script fornecido.
+3. Se o histórico mostrar que o cliente já respondeu o que o script pergunta, responda: "SKIP".
+4. NÃO seja robótica. Use o contexto da última conversa suavemente se fizer sentido.
 5. Máximo 2 frases curtas. Use emojis.
 6. Assine como Sol.`;
 
@@ -334,12 +338,18 @@ REGRAS DO FOLLOW-UP:
                     })),
                 ],
                 max_tokens: 150,
-                temperature: 0.8,
+                temperature: 0.7,
             });
+
+            const response = completion.choices[0]?.message?.content;
+
+            if (response && response.includes('SKIP')) {
+                return { success: true, skip: true };
+            }
 
             return {
                 success: true,
-                message: completion.choices[0]?.message?.content,
+                message: response,
             };
         } catch (error) {
             console.error('[OpenAIService] Error generating follow-up:', error.message);
