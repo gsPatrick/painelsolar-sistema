@@ -130,9 +130,9 @@ class CronService {
      * Fetches recent leads from Meta every 30 minutes to catch missed webhooks
      */
     scheduleMetaSync() {
-        // Run every 30 minutes
-        const job = cron.schedule('*/30 * * * *', async () => {
-            console.log('[CronService] Running Meta Lead Sync check...');
+        // Run every 5 minutes - More frequent fallback to avoid lead loss
+        const job = cron.schedule('*/5 * * * *', async () => {
+            console.log('[CronService] Running Meta Lead Sync check (every 5 min)...');
             try {
                 await metaSyncService.runSyncJob();
             } catch (error) {
@@ -141,7 +141,7 @@ class CronService {
         }, { timezone: "America/Sao_Paulo" });
 
         this.jobs.push(job);
-        console.log('[CronService] Meta Sync job scheduled (every 30 minutes)');
+        console.log('[CronService] Meta Sync job scheduled (every 5 minutes)');
     }
 
     /**
