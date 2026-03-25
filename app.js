@@ -217,6 +217,13 @@ async function startServer() {
             // Initialize Cron Jobs
             cronService.init();
 
+            // Run Meta Sync once on startup to catch anything missed during downtime
+            console.log('🔄 [Startup] Running initial Meta Lead Sync...');
+            const metaSyncService = require('./src/services/MetaSyncService');
+            metaSyncService.runSyncJob()
+                .then(res => console.log('✅ [Startup] Initial Meta Sync complete'))
+                .catch(e => console.error('❌ [Startup] Initial Meta Sync failed:', e.message));
+
             // Execute Follow-up Job on Startup to process overdue leads
             setTimeout(() => {
                 console.log('🔄 [Startup] Processing backlog of leads for follow-up...');

@@ -11,6 +11,7 @@ const Setting = require('./Setting');
 const SystemSettings = require('./SystemSettings');
 const FollowUpRule = require('./FollowUpRule');
 const AdminNumber = require('./AdminNumber');
+const SyncLog = require('./synclog');
 
 // Define associations
 
@@ -76,4 +77,5 @@ module.exports = {
     SystemSettings,
     FollowUpRule,
     AdminNumber,
+    SyncLog,
 };
