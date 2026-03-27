@@ -1173,6 +1173,8 @@ class WebhookController {
                 details: error.message
             });
         }
+    }
+
     /**
      * GET /webhook/meta/status
      * Check Meta configuration and sync status
