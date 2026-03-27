@@ -1,51 +1,43 @@
-'use strict';
-const { Model } = require('sequelize');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-module.exports = (sequelize, DataTypes) => {
-  class SyncLog extends Model {
-    static associate(models) {
-      // define association here
-    }
-  }
-  SyncLog.init({
+const SyncLog = sequelize.define('SyncLog', {
     service: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'meta_sync'
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'meta_sync'
     },
     status: {
-      type: DataTypes.ENUM('success', 'error', 'running'),
-      allowNull: false
+        type: DataTypes.ENUM('success', 'error', 'running'),
+        allowNull: false
     },
     message: {
-      type: DataTypes.TEXT,
-      allowNull: true
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     leads_found: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     leads_added: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     error_details: {
-      type: DataTypes.JSON,
-      allowNull: true
+        type: DataTypes.JSON,
+        allowNull: true
     },
-    started_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
+    startedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     },
-    finished_at: {
-      type: DataTypes.DATE,
-      allowNull: true
+    finishedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
-  }, {
-    sequelize,
-    modelName: 'SyncLog',
+}, {
     tableName: 'sync_logs',
     underscored: true,
-  });
-  return SyncLog;
-};
+});
+
+module.exports = SyncLog;

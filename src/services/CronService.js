@@ -13,6 +13,7 @@ const metaSyncService = require('./MetaSyncService');
 class CronService {
     constructor() {
         this.jobs = [];
+        this.lastMetaSync = null;
     }
 
     /**
@@ -133,6 +134,7 @@ class CronService {
         // Run every 5 minutes - More frequent fallback to avoid lead loss
         const job = cron.schedule('*/5 * * * *', async () => {
             console.log('[CronService] Running Meta Lead Sync check (every 5 min)...');
+            this.lastMetaSync = new Date();
             try {
                 await metaSyncService.runSyncJob();
             } catch (error) {

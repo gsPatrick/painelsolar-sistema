@@ -13,6 +13,7 @@ router.get('/meta', (req, res) => webhookController.verifyMetaWebhook(req, res))
 router.post('/meta', (req, res) => webhookController.handleMetaWebhook(req, res));
 router.post('/meta/preview', (req, res) => webhookController.previewMetaLeads(req, res));
 router.post('/meta/sync', (req, res) => webhookController.syncMetaLeads(req, res));
+router.get('/meta/status', (req, res) => webhookController.getMetaStatus(req, res));
 
 // WhatsApp status check
 router.get('/status', async (req, res) => {

@@ -1173,6 +1173,35 @@ class WebhookController {
                 details: error.message
             });
         }
+    /**
+     * GET /webhook/meta/status
+     * Check Meta configuration and sync status
+     */
+    async getMetaStatus(req, res) {
+        try {
+            const cronService = require('../../services/CronService');
+            const metaService = require('../../services/MetaService');
+            const { SyncLog } = require('../../models');
+
+            const lastLog = await SyncLog.findOne({
+                order: [['startedAt', 'DESC']]
+            });
+
+            res.json({
+                configured: metaService.isConfigured(),
+                page_id: '534745156397254',
+                last_cron_run: cronService.lastMetaSync,
+                last_db_log: lastLog ? {
+                    status: lastLog.status,
+                    startedAt: lastLog.startedAt,
+                    leads_added: lastLog.leads_added,
+                    message: lastLog.message
+                } : null,
+                server_time: new Date()
+            });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
 }
 

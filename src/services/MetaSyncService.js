@@ -27,7 +27,7 @@ class MetaSyncService {
             syncLog = await SyncLog.create({
                 status: 'running',
                 message: 'Iniciando sincronização automática...',
-                started_at: new Date()
+                startedAt: new Date()
             });
 
             // 1. Fetch leads from Meta (fetch 100 to be safe for 2 days volume)
@@ -38,7 +38,7 @@ class MetaSyncService {
                 await syncLog.update({
                     status: 'success',
                     message: 'Nenhum lead encontrado nos formulários da página.',
-                    finished_at: new Date()
+                    finishedAt: new Date()
                 });
                 return;
             }
@@ -81,7 +81,7 @@ class MetaSyncService {
                 message: `Sincronização concluída. ${addedCount} novos leads adicionados. ${recentMetaLeads.length} analisados.`,
                 leads_found: recentMetaLeads.length,
                 leads_added: addedCount,
-                finished_at: new Date()
+                finishedAt: new Date()
             });
 
         } catch (error) {
@@ -91,7 +91,7 @@ class MetaSyncService {
                     status: 'error',
                     message: `Erro na sincronização: ${error.message}`,
                     error_details: error.response ? error.response.data : null,
-                    finished_at: new Date()
+                    finishedAt: new Date()
                 });
             }
         }
