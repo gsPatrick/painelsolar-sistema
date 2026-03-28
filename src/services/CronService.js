@@ -128,12 +128,12 @@ class CronService {
 
     /**
      * Meta Sync Job
-     * Fetches recent leads from Meta every 30 minutes to catch missed webhooks
+     * Fetches recent leads from Meta every minute to act as a near real-time webhook alternative
      */
     scheduleMetaSync() {
-        // Run every 5 minutes - More frequent fallback to avoid lead loss
-        const job = cron.schedule('*/5 * * * *', async () => {
-            console.log('[CronService] Running Meta Lead Sync check (every 5 min)...');
+        // Run every minute - User requested 1m interval for delayed leads
+        const job = cron.schedule('* * * * *', async () => {
+            console.log('[CronService] Running Meta Lead Sync check (every 1 min)...');
             this.lastMetaSync = new Date();
             try {
                 await metaSyncService.runSyncJob();
