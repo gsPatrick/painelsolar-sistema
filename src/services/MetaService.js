@@ -140,10 +140,9 @@ class MetaService {
             });
             return response.data.data || [];
         } catch (error) {
-            console.warn(`[MetaService] Error fetching page forms for ${pageId}: ${error.response?.data?.error?.message || error.message}`);
-            // If using a Page Token, we might be accessing the page directly. 
-            // If error is permissions, return empty list to avoid crashing sync.
-            return [];
+            const errorMsg = error.response?.data?.error?.message || error.message;
+            console.error(`[MetaService] Error fetching page forms for ${pageId}: ${errorMsg}`);
+            throw new Error(`Meta Forms Error: ${errorMsg}`);
         }
     }
 

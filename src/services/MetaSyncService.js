@@ -21,12 +21,16 @@ class MetaSyncService {
             return;
         }
 
+        const token = metaService.accessToken;
+        const maskedToken = token ? `${token.substring(0, 10)}...${token.substring(token.length - 5)}` : 'MISSING';
+        console.log(`[MetaSync] Using token: ${maskedToken} for Page ID: ${this.PAGE_ID}`);
+
         let syncLog = null;
         try {
             // Initialize SyncLog in DB
             syncLog = await SyncLog.create({
                 status: 'running',
-                message: 'Iniciando sincronização automática...',
+                message: `Iniciando sincronização (Token: ${maskedToken})...`,
                 startedAt: new Date()
             });
 
