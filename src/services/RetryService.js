@@ -1,4 +1,4 @@
-const { Lead, Message, Pipeline, Op } = require('../models');
+const { Lead, Message, Pipeline, Appointment, Op } = require('../models');
 const whatsAppService = require('./WhatsAppService');
 
 class RetryService {
@@ -53,6 +53,15 @@ class RetryService {
             let count = 0;
 
             for (const lead of leads) {
+                // 🛑 NEW: Skip if has active appointments
+                const hasAppointment = await Appointment.findOne({
+                    where: { lead_id: lead.id, status: 'scheduled' }
+                });
+                if (hasAppointment) {
+                    console.log(`[RetryService] Skip ${lead.name}: Has active appointment`);
+                    continue;
+                }
+
                 const lastMessage = lead.messages && lead.messages[0];
 
                 // 1. Check if last message was from AI

@@ -6,7 +6,7 @@
  * 2. If lead missing data and hasn't been contacted recently → Send reminder message
  */
 
-const { Lead, Pipeline, Message } = require('../models');
+const { Lead, Pipeline, Message, Appointment } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 const openAIService = require('./OpenAIService');
@@ -52,6 +52,15 @@ class LeadSweepService {
             let remindedCount = 0;
 
             for (const lead of stuckLeads) {
+                // 🛑 NEW: Skip if has active appointments
+                const hasAppointment = await Appointment.findOne({
+                    where: { lead_id: lead.id, status: 'scheduled' }
+                });
+                if (hasAppointment) {
+                    console.log(`[LeadSweep] Skip ${lead.name}: Has active appointment`);
+                    continue;
+                }
+
                 // Check last message - only process if last message was from AI (user hasn't responded)
                 const lastMessage = await Message.findOne({
                     where: { lead_id: lead.id },

@@ -76,6 +76,35 @@ class MetaService {
     }
 
     /**
+     * Fetch all pages associated with the current user/token
+     * Used for dynamic syncing of multi-page setups
+     */
+    async getAvailablePages() {
+        if (!this.isConfigured()) {
+            throw new Error('Meta API not configured.');
+        }
+
+        try {
+            console.log('[MetaService] Fetching all available pages for this token...');
+            const response = await axios.get(`${this.baseUrl}/me/accounts`, {
+                params: {
+                    access_token: this.accessToken,
+                    fields: 'id,name,access_token,category,tasks',
+                    limit: 100
+                },
+            });
+
+            const pages = response.data.data || [];
+            console.log(`[MetaService] Found ${pages.length} accessible pages.`);
+            return pages;
+        } catch (error) {
+            const errorMsg = error.response?.data?.error?.message || error.message;
+            console.error(`[MetaService] Error fetching available pages: ${errorMsg}`);
+            throw new Error(`Meta API Error: ${errorMsg}`);
+        }
+    }
+
+    /**
      * Step 1: Fetch lead form data
      */
     async getLeadData(leadgenId) {
@@ -203,12 +232,16 @@ class MetaService {
      */
     parseFieldData(fieldData) {
         const result = {};
+        console.log('[MetaService] Parsing raw field data:', JSON.stringify(fieldData));
 
         for (const field of fieldData) {
             const value = field.values?.[0] || null;
             if (!value) continue;
 
             const fieldName = field.name.toLowerCase();
+            
+            // Log each field being processed
+            console.log(`[MetaService] - Mapping field: ${field.name} (Value: ${value})`);
 
             // Name detection
             if (['full_name', 'fullname', 'nome', 'name', 'nome_completo', 'nome_da_pessoa'].includes(fieldName) ||
@@ -244,10 +277,12 @@ class MetaService {
         if (!result.name && result.custom_fields) {
             const fallbackKey = Object.keys(result.custom_fields)[0];
             if (fallbackKey) {
+                console.log(`[MetaService] No name found in standard fields. Using fallback from custom field: ${fallbackKey}`);
                 result.name = result.custom_fields[fallbackKey];
             }
         }
 
+        console.log('[MetaService] Final parsed data:', result);
         return result;
     }
 

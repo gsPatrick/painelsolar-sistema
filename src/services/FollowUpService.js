@@ -1,4 +1,4 @@
-const { Lead, Message, FollowUpRule } = require('../models');
+const { Lead, Message, FollowUpRule, Appointment } = require('../models');
 const { Op } = require('sequelize');
 const whatsAppService = require('./WhatsAppService');
 const openAIService = require('./OpenAIService');
@@ -69,6 +69,21 @@ class FollowUpService {
             for (const lead of leads) {
                 // DEBUG: Log lead being evaluated
                 // console.log(`[FollowUp DEBUG] Evaluating lead ${lead.id} (${lead.name}), ai_status: ${lead.ai_status}, pipeline: ${lead.pipeline?.title || 'N/A'}`);
+
+                // 🛑 NEW: Skip if in "Agendamento" pipeline
+                if (lead.pipeline && (lead.pipeline.title === 'Agendamento' || lead.pipeline.title === 'Agenda')) {
+                    // console.log(`[FollowUp DEBUG] Skip ${lead.name}: In Agendamento pipeline`);
+                    continue;
+                }
+
+                // 🛑 NEW: Skip if has active appointments
+                const hasAppointment = await Appointment.findOne({
+                    where: { lead_id: lead.id, status: 'scheduled' }
+                });
+                if (hasAppointment) {
+                    // console.log(`[FollowUp DEBUG] Skip ${lead.name}: Has active appointment`);
+                    continue;
+                }
 
                 // Check last message to determine context
                 const lastMessage = await Message.findOne({

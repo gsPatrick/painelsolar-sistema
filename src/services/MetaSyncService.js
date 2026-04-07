@@ -6,15 +6,15 @@ const { Op } = require('sequelize');
 
 class MetaSyncService {
     constructor() {
-        this.PAGE_ID = '534745156397254'; // Ensure this Page ID is correct dynamically or via env if possible
+        // No longer using a single hardcoded PAGE_ID
     }
 
     /**
      * Run the synchronization job
-     * Fetches leads from last 2 days (Today and Yesterday)
+     * Fetches leads from last 2 days for ALL accessible pages
      */
     async runSyncJob() {
-        console.log(`[MetaSync] [${new Date().toISOString()}] Starting Meta Lead Sync Job for Page ${this.PAGE_ID}...`);
+        console.log(`[MetaSync] [${new Date().toISOString()}] Starting Dynamic Meta Lead Sync Job...`);
 
         if (!metaService.isConfigured()) {
             console.error('[MetaSync] Meta API not configured (META_PAGE_ACCESS_TOKEN missing). Skipping.');
@@ -23,68 +23,88 @@ class MetaSyncService {
 
         const token = metaService.accessToken;
         const maskedToken = token ? `${token.substring(0, 10)}...${token.substring(token.length - 5)}` : 'MISSING';
-        console.log(`[MetaSync] Using token: ${maskedToken} for Page ID: ${this.PAGE_ID}`);
+        
+        let syncLog = await SyncLog.create({
+            status: 'running',
+            message: `Iniciando sincronização dinâmica (Token: ${maskedToken})...`,
+            startedAt: new Date()
+        });
 
-        let syncLog = null;
         try {
-            // Initialize SyncLog in DB
-            syncLog = await SyncLog.create({
-                status: 'running',
-                message: `Iniciando sincronização (Token: ${maskedToken})...`,
-                startedAt: new Date()
-            });
-
-            // 1. Fetch leads from Meta (fetch 100 to be safe for 2 days volume)
-            const metaLeads = await metaService.getAllPageLeads(this.PAGE_ID, 100);
+            // 1. Fetch ALL pages accessible by this token
+            const pages = await metaService.getAvailablePages();
             
-            if (!metaLeads || metaLeads.length === 0) {
-                console.log('[MetaSync] No leads found in any forms for this page.');
+            if (pages.length === 0) {
+                console.log('[MetaSync] No pages found for this token.');
                 await syncLog.update({
                     status: 'success',
-                    message: 'Nenhum lead encontrado nos formulários da página.',
+                    message: 'Nenhuma página encontrada para este token.',
                     finishedAt: new Date()
                 });
                 return;
             }
 
-            // 2. Define Time Range: "Today" and "Yesterday"
-            const startTime = new Date();
-            startTime.setHours(startTime.getHours() - 48);
+            let totalAdded = 0;
+            let totalExisting = 0;
+            let totalAnalyzed = 0;
+            let pagesProcessed = 0;
 
-            const recentMetaLeads = metaLeads.filter(l => {
-                const created = new Date(l.created_time);
-                return created >= startTime;
-            });
+            // 2. Iterate through each page
+            for (const page of pages) {
+                console.log(`\n[MetaSync] 📄 Syncing Page: ${page.name} (ID: ${page.id})`);
+                
+                try {
+                    // Fetch leads from Meta for this specific page
+                    const metaLeads = await metaService.getAllPageLeads(page.id, 100);
+                    
+                    if (!metaLeads || metaLeads.length === 0) {
+                        console.log(`[MetaSync] - No leads found for page ${page.name}.`);
+                        pagesProcessed++;
+                        continue;
+                    }
 
-            console.log(`[MetaSync] Found ${recentMetaLeads.length} recent leads (last 48h) out of ${metaLeads.length} total fetched.`);
+                    // Define Time Range: "Today" and "Yesterday"
+                    const startTime = new Date();
+                    startTime.setHours(startTime.getHours() - 48);
 
-            let addedCount = 0;
-            let existingCount = 0;
+                    const recentMetaLeads = metaLeads.filter(l => {
+                        const created = new Date(l.created_time);
+                        return created >= startTime;
+                    });
 
-            for (const rawLead of recentMetaLeads) {
-                const leadgenId = rawLead.id;
+                    console.log(`[MetaSync] - Found ${recentMetaLeads.length} recent leads (last 48h) out of ${metaLeads.length} total fetched for this page.`);
 
-                // 3. Check for duplicates (Idempotency) - Check both meta_id and phone
-                const existing = await Lead.findOne({ where: { meta_leadgen_id: leadgenId } });
-                if (existing) {
-                    existingCount++;
-                    continue;
+                    for (const rawLead of recentMetaLeads) {
+                        totalAnalyzed++;
+                        const leadgenId = rawLead.id;
+
+                        // Check for duplicates
+                        const existing = await Lead.findOne({ where: { meta_leadgen_id: leadgenId } });
+                        if (existing) {
+                            totalExisting++;
+                            continue;
+                        }
+
+                        // Create proper Lead
+                        console.log(`[MetaSync] -- Processing new lead from ${page.name}: ${leadgenId}`);
+                        const result = await this.processNewLead(leadgenId);
+                        if (result) totalAdded++;
+                    }
+                    
+                    pagesProcessed++;
+                } catch (pageError) {
+                    console.error(`[MetaSync] ❌ Error syncing page ${page.name} (${page.id}):`, pageError.message);
                 }
-
-                // 4. Create proper Lead
-                console.log(`[MetaSync] Processing new lead from Meta: ${leadgenId}`);
-                const result = await this.processNewLead(leadgenId);
-                if (result) addedCount++;
             }
 
-            console.log(`[MetaSync] Job Finished. New: ${addedCount}, Already Exists: ${existingCount}.`);
+            console.log(`\n[MetaSync] Job Finished. Pages: ${pagesProcessed}, New: ${totalAdded}, Analyzed: ${totalAnalyzed}.`);
 
             // Finalize SyncLog
             await syncLog.update({
                 status: 'success',
-                message: `Sincronização concluída. ${addedCount} novos leads adicionados. ${recentMetaLeads.length} analisados.`,
-                leads_found: recentMetaLeads.length,
-                leads_added: addedCount,
+                message: `Sincronização concluída para ${pagesProcessed} páginas. ${totalAdded} novos leads adicionados.`,
+                leads_found: totalAnalyzed,
+                leads_added: totalAdded,
                 finishedAt: new Date()
             });
 
@@ -93,8 +113,7 @@ class MetaSyncService {
             if (syncLog) {
                 await syncLog.update({
                     status: 'error',
-                    message: `Erro na sincronização: ${error.message}`,
-                    error_details: error.response ? error.response.data : null,
+                    message: `Erro crítico na sincronização: ${error.message}`,
                     finishedAt: new Date()
                 });
             }
@@ -168,12 +187,15 @@ class MetaSyncService {
      */
     async sendGreeting(lead) {
         try {
+            console.log(`[MetaSync] Generating initial greeting for lead ${lead.id} (${lead.phone})...`);
+            
             // Generate Hello
             const aiResponse = await openAIService.generateResponse([], {
                 name: lead.name,
                 phone: lead.phone,
+                source: lead.source,
                 pipeline_title: 'Entrada'
-            });
+            }, null, lead.id);
 
             if (aiResponse.success && aiResponse.message) {
                 const responseText = aiResponse.message;
@@ -187,11 +209,19 @@ class MetaSyncService {
                 });
 
                 // Send WhatsApp (with safety delay)
-                await whatsAppService.sendMessage(lead.phone, responseText, 5);
-                console.log(`[MetaSync] Greeting sent to ${lead.phone}`);
+                console.log(`[MetaSync] Sending WhatsApp greeting to ${lead.phone}...`);
+                const waResult = await whatsAppService.sendMessage(lead.phone, responseText, 5);
+                
+                if (waResult.success) {
+                    console.log(`[MetaSync] ✅ Greeting sent successfully to ${lead.phone}`);
+                } else {
+                    console.error(`[MetaSync] ❌ Failed to send WhatsApp greeting to ${lead.phone}:`, waResult.error);
+                }
+            } else {
+                console.warn(`[MetaSync] ⚠️ AI did not generate greeting for ${lead.id}. Success: ${aiResponse.success}, Aborted: ${aiResponse.aborted}, Error: ${aiResponse.error}`);
             }
         } catch (err) {
-            console.error(`[MetaSync] Error sending greeting to ${lead.id}:`, err.message);
+            console.error(`[MetaSync] ❌ Error sending greeting to ${lead.id}:`, err.message);
         }
     }
 }

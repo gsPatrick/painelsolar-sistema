@@ -823,7 +823,7 @@ class WebhookController {
                     name: lead.name,
                     phone: lead.phone,
                     pipeline_title: lead.pipeline ? lead.pipeline.title : null,
-                });
+                }, null, lead.id);
 
                 console.log(`[Meta] Resposta IA sucesso: ${aiResponse.success}`);
 
@@ -1122,7 +1122,8 @@ class WebhookController {
                         last_interaction_at: new Date(),
                     });
 
-                    console.log(`[Sync] ✅ Lead criado: ${lead.name} (${lead.phone})`);
+                    console.log(`[Meta] Resposta IA enviada com sucesso para ${lead.name} (${lead.phone})`);
+                    console.log(`[Meta] Origem: Página "${lead.meta_campaign_data?.campaign_name || 'Desconhecida'}" | Leadgen ID: ${leadgenId}`);
                     imported_count++;
 
                     // Add to queue for AI greeting (will be sent with delay)

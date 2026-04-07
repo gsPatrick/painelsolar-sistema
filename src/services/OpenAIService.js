@@ -165,15 +165,46 @@ INFORMAÇÕES DA EMPRESA (PARA DÚVIDAS):
         }
 
         try {
-            // DOUBLE-CHECK: Verify AI status before calling OpenAI
+            // DOUBLE-CHECK: Verify AI status and appointments before calling OpenAI
             if (leadId) {
-                const { Lead } = require('../models');
-                const lead = await Lead.findByPk(leadId);
+                const { Lead, Appointment, Pipeline } = require('../models');
+                const lead = await Lead.findByPk(leadId, {
+                    include: [{ model: Pipeline, as: 'pipeline' }]
+                });
+                
+                // 1. Check AI status
                 if (lead && lead.ai_status !== 'active') {
                     console.log(`[OpenAIService] AI status is '${lead.ai_status}' for lead ${leadId}. Aborting response generation.`);
                     return {
                         success: false,
                         error: 'AI paused for this lead',
+                        aborted: true
+                    };
+                }
+
+                // 2. Check Pipeline Stage (Agendamento)
+                if (lead && lead.pipeline && lead.pipeline.title === 'Agendamento') {
+                    console.log(`[OpenAIService] Lead ${leadId} is in 'Agendamento' stage. Pausing AI attendance.`);
+                    return {
+                        success: false,
+                        error: 'Lead is in Agendamento stage',
+                        aborted: true
+                    };
+                }
+
+                // 3. Check for scheduled appointments (Agenda)
+                const scheduledAppointment = await Appointment.findOne({
+                    where: {
+                        lead_id: leadId,
+                        status: 'scheduled'
+                    }
+                });
+
+                if (scheduledAppointment) {
+                    console.log(`[OpenAIService] Lead ${leadId} has a scheduled appointment (${scheduledAppointment.type}). Pausing AI attendance.`);
+                    return {
+                        success: false,
+                        error: 'Lead has scheduled appointment',
                         aborted: true
                     };
                 }
