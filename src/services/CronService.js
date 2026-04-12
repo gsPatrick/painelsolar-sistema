@@ -149,6 +149,9 @@ class CronService {
     /**
      * Check for appointments that need reminders
      */
+    /**
+     * Check for appointments that need reminders
+     */
     async checkAppointmentReminders() {
         try {
             // Load reminder settings from database
@@ -165,14 +168,14 @@ class CronService {
 
             const now = new Date();
 
-            // Check for appointments needing 1-day reminder (24-25 hours away)
+            // 1. One-Day Reminders (24-25 hours away)
             if (reminder1dayEnabled?.value === 'true') {
                 const oneDayMin = new Date(now);
                 oneDayMin.setHours(oneDayMin.getHours() + 23);
                 const oneDayMax = new Date(now);
                 oneDayMax.setHours(oneDayMax.getHours() + 25);
 
-                const oneDayAppointments = await Appointment.findAll({
+                const oneDayApts = await Appointment.findAll({
                     where: {
                         status: 'scheduled',
                         reminded_1day: false,
@@ -181,15 +184,14 @@ class CronService {
                     include: [{ model: Lead, as: 'lead' }]
                 });
 
-                for (const apt of oneDayAppointments) {
+                for (const apt of oneDayApts) {
                     const typeLabel = apt.type === 'VISITA_TECNICA' ? 'Visita Técnica' :
                                     apt.type === 'INSTALACAO' ? 'Instalação' : 'Lembrete';
                     
                     const dateStr = new Date(apt.date_time).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
                     const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 
-                    // 1. External Notice (Only for Technical Visit)
-                    // CRITICAL: Reminders for 'INSTALACAO' or 'LEMBRETE' are INTERNAL ONLY.
+                    // A. External Notice (CLIENT) - ONLY for VISITA_TECNICA
                     if (apt.type === 'VISITA_TECNICA' && apt.lead?.phone) {
                         let message = reminder1dayMessage?.value || '📅 *Lembrete de Agendamento*\n\nOlá, {nome}! Sua *{tipo}* está agendada para *amanhã ({data})* às *{hora}*.';
                         message = message
@@ -199,28 +201,26 @@ class CronService {
                             .replace(/{hora}/g, timeStr);
 
                         await whatsAppService.sendText(apt.lead.phone, message);
-                        console.log(`[CronService] 1-day reminder sent to CUSTOMER for appointment ${apt.id}`);
-                    } else {
-                        console.log(`[CronService] Skipping external 1-day reminder for type ${apt.type} (Internal Only)`);
+                        console.log(`[CronService] 1-day reminder sent to CUSTOMER for ${apt.type} ID ${apt.id}`);
                     }
 
-                    // 2. Internal Notice (For all types)
-                    const adminMsg = `📅 *Lembrete Interno (Amanhã)*\n\n📍 ${typeLabel}\n👤 ${apt.lead?.name || 'Lead desconhecido'}\n📞 ${apt.lead?.phone || 'N/A'}\n⏰ ${timeStr}`;
+                    // B. Internal Notice (ADMINS) - For ALL types
+                    const adminMsg = `📅 *LEMBERTE INTERNO (AMANHÃ)*\n\n📌 Tipo: *${typeLabel}*\n👤 Cliente: ${apt.lead?.name || 'Não vinculado'}\n📞 Contato: ${apt.lead?.phone || 'N/A'}\n⏰ Horário: ${timeStr}\n📝 Notas: ${apt.notes || 'Sem observações'}`;
                     await whatsAppService.sendAdminAlert(adminMsg);
                     
                     await apt.update({ reminded_1day: true });
-                    console.log(`[CronService] 1-day internal notice sent for appointment ${apt.id}`);
+                    console.log(`[CronService] 1-day internal broadcast completed for appointment ${apt.id}`);
                 }
             }
 
-            // Check for appointments needing 2-hour reminder (1.5 to 2.5 hours away)
+            // 2. Two-Hour Reminders (1.5 to 2.5 hours away)
             if (reminder2hoursEnabled?.value === 'true') {
                 const twoHoursMin = new Date(now);
                 twoHoursMin.setMinutes(twoHoursMin.getMinutes() + 90);
                 const twoHoursMax = new Date(now);
                 twoHoursMax.setMinutes(twoHoursMax.getMinutes() + 150);
 
-                const twoHourAppointments = await Appointment.findAll({
+                const twoHourApts = await Appointment.findAll({
                     where: {
                         status: 'scheduled',
                         reminded_2hours: false,
@@ -229,14 +229,13 @@ class CronService {
                     include: [{ model: Lead, as: 'lead' }]
                 });
 
-                for (const apt of twoHourAppointments) {
+                for (const apt of twoHourApts) {
                     const typeLabel = apt.type === 'VISITA_TECNICA' ? 'Visita Técnica' :
                                     apt.type === 'INSTALACAO' ? 'Instalação' : 'Lembrete';
                     
                     const timeStr = new Date(apt.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 
-                    // 1. External Notice (Only for Technical Visit)
-                    // CRITICAL: Reminders for 'INSTALACAO' or 'LEMBRETE' are INTERNAL ONLY.
+                    // A. External Notice (CLIENT) - ONLY for VISITA_TECNICA
                     if (apt.type === 'VISITA_TECNICA' && apt.lead?.phone) {
                         let message = reminder2hoursMessage?.value || '⏰ *Lembrete: Faltam 2 horas!*\n\nOlá, {nome}! Sua *{tipo}* está marcada para *hoje às {hora}*.';
                         message = message
@@ -245,17 +244,15 @@ class CronService {
                             .replace(/{hora}/g, timeStr);
 
                         await whatsAppService.sendText(apt.lead.phone, message);
-                        console.log(`[CronService] 2-hour reminder sent to CUSTOMER for appointment ${apt.id}`);
-                    } else {
-                        console.log(`[CronService] Skipping external 2-hour reminder for type ${apt.type} (Internal Only)`);
+                        console.log(`[CronService] 2-hour reminder sent to CUSTOMER for ${apt.type} ID ${apt.id}`);
                     }
 
-                    // 2. Internal Notice (For all types)
-                    const adminMsg = `🔔 *Lembrete Interno (2 Horas)*\n\n📍 ${typeLabel}\n👤 ${apt.lead?.name || 'Lead desconhecido'}\n📞 ${apt.lead?.phone || 'N/A'}\n⏰ ${timeStr}`;
+                    // B. Internal Notice (ADMINS) - For ALL types
+                    const adminMsg = `🔔 *LEMBRETE INTERNO (EM 2 HORAS)*\n\n📌 Tipo: *${typeLabel}*\n👤 Cliente: ${apt.lead?.name || 'Não vinculado'}\n📞 Contato: ${apt.lead?.phone || 'N/A'}\n⏰ Horário: ${timeStr}`;
                     await whatsAppService.sendAdminAlert(adminMsg);
 
                     await apt.update({ reminded_2hours: true });
-                    console.log(`[CronService] 2-hour internal notice sent for appointment ${apt.id}`);
+                    console.log(`[CronService] 2-hour internal broadcast completed for appointment ${apt.id}`);
                 }
             }
 

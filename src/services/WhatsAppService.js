@@ -585,16 +585,44 @@ class WhatsAppService {
     // ===========================================
 
     /**
-     * Send a message to the admin
+     * Send a message to all active admin numbers
      * @param {string} message - Message to send
      */
     async sendAdminAlert(message) {
-        if (!env.ADMIN_PHONE) {
-            console.warn('[WhatsAppService] Admin phone not configured');
-            return { success: false, error: 'Admin phone not configured' };
+        const finalMsg = `🔔 *ALERTA CRM SOLAR*\n\n${message}`;
+        const results = [];
+
+        try {
+            // Lazy load models to avoid circular dependencies
+            const { AdminNumber } = require('../models');
+            const admins = await AdminNumber.findAll({ where: { active: true } });
+            
+            if (admins && admins.length > 0) {
+                console.log(`[WhatsAppService] Broadcasting admin alert to ${admins.length} registered numbers.`);
+                for (const admin of admins) {
+                    const res = await this.sendText(admin.phone, finalMsg);
+                    results.push({ phone: admin.phone, success: res.success });
+                }
+            } else {
+                console.log('[WhatsAppService] No registered admin numbers found in DB.');
+            }
+        } catch (error) {
+            console.error('[WhatsAppService] Could not fetch AdminNumbers for alert:', error.message);
         }
 
-        return this.sendText(env.ADMIN_PHONE, `🔔 *ALERTA CRM SOLAR*\n\n${message}`);
+        // Always fallback to environment variable if defined and not already sent
+        if (env.ADMIN_PHONE && !results.some(r => r.phone.replace(/\D/g, '') === env.ADMIN_PHONE.replace(/\D/g, ''))) {
+            const res = await this.sendText(env.ADMIN_PHONE, finalMsg);
+            results.push({ phone: env.ADMIN_PHONE, success: res.success });
+        }
+
+        if (results.length === 0) {
+            console.warn('[WhatsAppService] No admin phone numbers configured (env or DB).');
+            return { success: false, error: 'No admin numbers' };
+        }
+
+        const allSuccess = results.every(r => r.success);
+        return { success: allSuccess, broadcast: results };
     }
 }
 
